@@ -18,6 +18,13 @@
                 <e p="ITeamID.cs" t="Include" />
                 <e p="Ludopathic.Goo.Data.asmdef" t="Include" />
               </e>
+              <e p="InputSystem" t="Include">
+                <e p="IInputSource.cs" t="Include" />
+                <e p="IInputStamp.cs" t="Include" />
+                <e p="InputManager.cs" t="Include" />
+                <e p="InputUnityLegacy.cs" t="Include" />
+                <e p="Ludopathic.Goo.InputSystem.asmdef" t="Include" />
+              </e>
               <e p="Jobs" t="Include">
                 <e p="JobCopyBlobsToTransforms.cs" t="Include" />
                 <e p="Ludopathic.Goo.Jobs.asmdef" t="Include" />
@@ -33,6 +40,7 @@
       </e>
       <e p="Goo2Prototype.sln" t="IncludeFlat" />
       <e p="Ludopathic.Goo.Data.csproj" t="IncludeRecursive" />
+      <e p="Ludopathic.Goo.InputSystem.csproj" t="IncludeRecursive" />
       <e p="Ludopathic.Goo.Jobs.csproj" t="IncludeRecursive" />
       <e p="Ludopathic.Goo.Managers.csproj" t="IncludeRecursive" />
       <e p="obj" t="ExcludeRecursive" />

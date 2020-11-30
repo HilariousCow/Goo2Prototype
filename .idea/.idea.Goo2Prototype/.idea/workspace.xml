@@ -20,15 +20,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/IMovablePoint.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/IMovablePoint.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/ITeamID.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/ITeamID.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/SimpleCameraController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/SimpleCameraController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Packages/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Packages/packages-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/packages-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/EditorSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/EditorSettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/PackageManagerSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/PackageManagerSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/contentModel.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/Ludopathic.Goo.Managers.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/Ludopathic.Goo.Managers.asmdef" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +36,8 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/6a/e1b2c7a6/IJobParallelForTransformExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/JobCopyBlobsToTransforms.cs" root0="FORCE_HIGHLIGHTING" />
@@ -46,14 +45,18 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/BlobData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooCursorData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooGroupData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/IMovablePoint.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/ITeamID.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/BlobData.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/JobCopyBlobsToTransforms.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputStamp.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputUnityLegacy.cs" />
       </list>
     </option>
   </component>
@@ -123,10 +126,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="976" y="506" key="ANALYSIS_DLG_com.jetbrains.rider.actions.impl.cleanup.RiderCodeCleanupAction$actionPerformed$dlg$1/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606609942546" />
-    <state x="1074" y="307" key="RiderGenerateDialog" timestamp="1606610343682">
+    <state x="1074" y="307" key="RiderGenerateDialog" timestamp="1606712804251">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="1074" y="307" key="RiderGenerateDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606610343682" />
+    <state x="1074" y="307" key="RiderGenerateDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606712804251" />
     <state x="1161" y="297" key="SettingsEditor" timestamp="1606629004853">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

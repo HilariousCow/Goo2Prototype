@@ -14,6 +14,8 @@ namespace Ludopathic.Goo.Managers
 {
    public class BlobManager : MonoBehaviour
    {
+
+      public InputManager InputMan;
       //One blob manager exists per game, or is possibly just a singleton to store persistent swap data for all blobs.
       [SerializeField]
       public List<BlobData> _ListOfAllBlobs;
@@ -78,15 +80,33 @@ namespace Ludopathic.Goo.Managers
          _blobTransforms = new TransformAccessArray(_outputTransforms);
       }
 
-      
+      private static int _GameFrame = 0;
 
       private void Update()
       {
-         //spawn jobs here i guess.
+         InputMan.PollAllInputs(_GameFrame, 10);
+
+         Vector2 dir = InputMan.ListOfSources[0].GetInputAxis();
+         float pressure = InputMan.ListOfSources[0].GetPressure();
+         //next: do a test job that uses the above inputs to change the velocity
+         
+         Debug.Log( $" Direction: {dir}, Pressure: {pressure}");
+         
+         
+         //
+         //Init all job data here
+         //
+        
          var jobData = new JobCopyBlobsToTransforms
          {
             _blobPos = _blobPositions
          };
+         
+         
+         //
+         // Fire off jobs/their dependancies here
+         //
+         
          
          //aka var job = IJobParallelForTransformExtensions.Schedule<JobCopyBlobsToTransforms>( jobData, _blobTransforms, default);
          _jobSplat1 = jobData.Schedule<JobCopyBlobsToTransforms>(_blobTransforms, default);
@@ -99,6 +119,8 @@ namespace Ludopathic.Goo.Managers
          _jobSplat2.Complete();//force this job to hold up the thread until complete
          //also, looks like you can complete this in late update.
          //also, you only have to complete the job of last job in a chain.
+
+         _GameFrame++;
       }
 
       private void OnDisable()
