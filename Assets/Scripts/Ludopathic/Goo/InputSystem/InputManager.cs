@@ -11,6 +11,9 @@ namespace Ludopathic
 
 
         public InputUnityLegacy _LegacyInput;
+
+
+        public Dictionary<int, IInputStamp> _CursorIDsToInputStamps;
         
         // Start is called before the first frame update
         void Start()

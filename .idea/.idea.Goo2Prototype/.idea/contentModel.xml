@@ -26,7 +26,7 @@
                 <e p="Ludopathic.Goo.InputSystem.asmdef" t="Include" />
               </e>
               <e p="Jobs" t="Include">
-                <e p="JobCopyBlobsToTransforms.cs" t="Include" />
+                <e p="GooJobs.cs" t="Include" />
                 <e p="Ludopathic.Goo.Jobs.asmdef" t="Include" />
               </e>
               <e p="Managers" t="Include">
