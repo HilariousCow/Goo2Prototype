@@ -16,6 +16,9 @@ namespace Ludopathic.Goo.Managers
    {
 
       public InputManager InputMan;
+      public GameObject BlobPrefab;
+      
+      
       //One blob manager exists per game, or is possibly just a singleton to store persistent swap data for all blobs.
       [SerializeField]
       public List<BlobData> _ListOfAllBlobs;
@@ -115,7 +118,10 @@ namespace Ludopathic.Goo.Managers
          _blobOutputTransforms = new Transform[TRANSFORM_ARRAY_SIZE];
          for (int index = 0; index < TRANSFORM_ARRAY_SIZE; index++)
          {
-            _blobOutputTransforms[index] = new GameObject($"BlobOutput{index}").transform;
+            GameObject blobInstance = Instantiate(BlobPrefab);
+            blobInstance.name = $"BlobOutput{index}";
+            blobInstance.transform.rotation = Quaternion.Euler(90f,0f,0f);
+            _blobOutputTransforms[index] = blobInstance.transform;
          }
 
          _blobTransformAccessArray = new TransformAccessArray(_blobOutputTransforms);
@@ -196,8 +202,8 @@ namespace Ludopathic.Goo.Managers
          //update cursor accel based on inputs
          var jobDataSetCursorAcceleration = new JobSetAcceleration
          {
-            _ValueToSet = _cursorInputDeltas,
-            _accumulatedAcceleration = _cursorAccelerations
+            ValueToSet = _cursorInputDeltas,
+            AccumulatedAcceleration = _cursorAccelerations
          };
          
          //update cursor friction
@@ -280,7 +286,8 @@ namespace Ludopathic.Goo.Managers
          //todo require above jobs are complete in combo
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations);
       
-            
+         //_jobHandleResetJobs.Complete();
+         
          #region SimUpdateFrame
          //
          // Cursors must be done first. Luckily there's very few
@@ -295,27 +302,32 @@ namespace Ludopathic.Goo.Managers
          
          //update cursors
          _jobHandleSetCursorAcceleration = jobDataSetCursorAcceleration.Schedule(_cursorInputDeltas.Length, 1, _jobHandleResetJobs);
-            _jobHandleSetCursorAcceleration.Complete();
+         
          _jobHandleApplyCursorFriction = jobDataApplyCursorFriction.Schedule(_cursorInputDeltas.Length, 1, _jobHandleSetCursorAcceleration);
-            _jobHandleApplyCursorFriction.Complete();
+         
          _jobHandleApplyCursorAccelerationToVelocity = jobDataApplyCursorAccelerationToVelocity.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorFriction);
-            _jobHandleApplyCursorAccelerationToVelocity.Complete();
          
          _jobHandleApplyCursorVelocityToPosition = jobDataApplyCursorVelocityToPosition.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorAccelerationToVelocity);
          
+         
+         _jobHandleCursorsInfluenceBlobs = jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleApplyCursorVelocityToPosition);
+         
+         
+         
          //Cursor Influences blobs once it's ready
-         _jobHandleCursorsInfluenceBlobs = jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleApplyCursorAccelerationToVelocity);
-            _jobHandleCursorsInfluenceBlobs.Complete();
+         
+         //   _jobHandleCursorsInfluenceBlobs.Complete();
             
          //Blob sim gets updated after cursor influence
          _jobHandleApplyBlobAccelerationToVelocity = jobDataApplyBlobAccelerationToVelocity.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
-            _jobHandleApplyBlobAccelerationToVelocity.Complete();
+            //_jobHandleApplyBlobAccelerationToVelocity.Complete();
          _jobHandleApplyBlobVelocityToPosition = jobDataApplyBlobVelocityToPosition.Schedule(_blobVelocities.Length, 64, _jobHandleApplyBlobAccelerationToVelocity);
-            _jobHandleApplyBlobVelocityToPosition.Complete();
+            //_jobHandleApplyBlobVelocityToPosition.Complete();
          #endregion //SimUpdateFrame
       
          //temp - needs an interpolator job
          _jobHandleCopyBlobsToTransforms = jobDataCopyBlobsToTransforms.Schedule<JobCopyBlobsToTransforms>(_blobTransformAccessArray, _jobHandleApplyBlobVelocityToPosition);
+         _jobHandleCopyBlobsToTransforms.Complete();
          
          #endregion // Job Kickoff and Dependancy
          
@@ -328,7 +340,7 @@ namespace Ludopathic.Goo.Managers
       {
          
          
-         _jobHandleCopyBlobsToTransforms.Complete();
+         
          
          //_jobSplat2.Complete();//force this job to hold up the thread until complete
          //also, looks like you can complete this in late update.

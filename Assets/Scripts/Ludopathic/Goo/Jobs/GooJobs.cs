@@ -22,15 +22,15 @@ namespace Ludopathic.Goo.Jobs
     public struct JobSetAcceleration : IJobParallelFor
     {
         [ReadOnly]
-        public NativeArray<float2> _ValueToSet;
+        public NativeArray<float2> ValueToSet;
         
         [WriteOnly]
-        public NativeArray<float2> _accumulatedAcceleration;
+        public NativeArray<float2> AccumulatedAcceleration;
 
         
         public void Execute(int index)
         {
-            _accumulatedAcceleration[index] = _ValueToSet[index];
+            AccumulatedAcceleration[index] = ValueToSet[index];
         }
     }
 
