@@ -17,6 +17,16 @@ namespace Ludopathic.Goo.Managers
 
       public InputManager InputMan;
       public GameObject BlobPrefab;
+
+      //Gameplay properties
+      
+      public float CursorAccel = 5.0f;
+      public float CursorLinearFriction = 0.1f;
+      public float CursorConstantFriction = 0.8f;
+      
+      
+      public float BlobLinearFriction;
+      public float BlobConstantFriction;
       
       
       //One blob manager exists per game, or is possibly just a singleton to store persistent swap data for all blobs.
@@ -34,7 +44,8 @@ namespace Ludopathic.Goo.Managers
       //TODO: effective radii
       
       //Cursor display
-      
+      private Transform[] _cursorOutputTransforms;
+      private TransformAccessArray _cursorTransformAccessArray;
       
       
       
@@ -75,9 +86,22 @@ namespace Ludopathic.Goo.Managers
             _cursorAccelerations[index] =  float2.zero;
             _cursorVelocities[index] = float2.zero;
             _cursorPositions[index] = Random.insideUnitCircle;
-            _cursorRadii[index] = 1.0f;
+            _cursorRadii[index] = 10.0f;
          }
          
+         _cursorOutputTransforms = new Transform[NUM_CURSORS];
+         //Cursor output things
+         for (int index = 0; index < NUM_CURSORS; index++)
+         {
+            GameObject blobInstance = Instantiate(BlobPrefab);
+            blobInstance.name = $"Cursor{index}";
+            blobInstance.transform.rotation = Quaternion.Euler(90f,0f,0f);
+            blobInstance.transform.localScale = Vector3.one * _cursorRadii[index];
+            _cursorOutputTransforms[index] = blobInstance.transform;
+            
+            
+         }
+         _cursorTransformAccessArray = new TransformAccessArray(_cursorOutputTransforms);
          //Blob enabling
          
          
@@ -139,6 +163,8 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleApplyBlobAccelerationToVelocity;
       private JobHandle _jobHandleApplyBlobVelocityToPosition;
       private JobHandle _jobHandleCopyBlobsToTransforms;
+      private JobHandle _jobHandleCopyCursorsToTransforms;
+      private JobHandle _jobHandleApplyFrictionToBlobs1;
 
       private void Update()
       {
@@ -169,7 +195,7 @@ namespace Ludopathic.Goo.Managers
          for (int index = 0; index < NUM_CURSORS; index++)
          {
             //_cursorTeamIDs[index] = index;
-            _cursorInputDeltas[index] = InputMan.ListOfSources[index].GetInputAxis();//todo: needs a game frame to reference
+            _cursorInputDeltas[index] = InputMan.ListOfSources[index].GetInputAxis() * CursorAccel;//todo: needs a game frame to reference
             //_cursorAccelerations[index] =  float2.zero;
             //_cursorVelocities[index] = float2.zero;
             //_cursorPositions[index] = Random.insideUnitCircle;
@@ -185,12 +211,12 @@ namespace Ludopathic.Goo.Managers
          #region ResetBeginningOfSimFrame
          var jobDataResetBlobAccelerations = new JobResetAcceleration
          {
-            _accumulatedAcceleration = _blobAccelerations
+            AccumulatedAcceleration = _blobAccelerations
          };
 
          var jobDataResetCursorAccelerations = new JobResetAcceleration
          {
-            _accumulatedAcceleration = _cursorAccelerations
+            AccumulatedAcceleration = _cursorAccelerations
          };
          #endregion //ResetBeginningOfSimFrame
          
@@ -212,8 +238,8 @@ namespace Ludopathic.Goo.Managers
             DeltaTime = deltaTime,
             //TODO: maybe I want friction based on acceleration (t*t) since that's the freshest part of this.
             //So, constant + linear(t) + accelerative (t*t)
-            LinearFriction = 0.5f,
-            ConstantFriction = 0.5f,
+            LinearFriction = CursorLinearFriction,
+            ConstantFriction = CursorConstantFriction,
             AccumulatedAcceleration = _cursorAccelerations,
             Velocity = _cursorVelocities
          };
@@ -223,6 +249,15 @@ namespace Ludopathic.Goo.Managers
             DeltaTime = deltaTime,
             AccumulatedAcceleration = _cursorAccelerations,
             VelocityInAndOut = _cursorVelocities
+         };
+         
+         //We update the cursor pos only after we've influenced the blobs, so that we don't "leave behind" blobs.
+         //Consider moving this up one if that's no good
+         var jobDataApplyCursorVelocityToPosition = new JobApplyDerivative
+         {
+            DeltaTime = deltaTime,
+            AccumulatedAcceleration = _cursorVelocities,
+            VelocityInAndOut = _cursorPositions
          };
          
          //Now we can update the blobs with the new state of the cursors
@@ -235,15 +270,17 @@ namespace Ludopathic.Goo.Managers
             BlobAccelAccumulator = _blobAccelerations
          } ;
          
-         //We update the cursor pos only after we've influenced the blobs, so that we don't "leave behind" blobs.
-         //Consider moving this up one if that's no good
-         var jobDataApplyCursorVelocityToPosition = new JobApplyDerivative
+      
+         var jobDataApplyFrictionToBlobs = new JobApplyLinearAndConstantFriction
          {
             DeltaTime = deltaTime,
-            AccumulatedAcceleration = _cursorVelocities,
-            VelocityInAndOut = _cursorPositions
+            //TODO: maybe I want friction based on acceleration (t*t) since that's the freshest part of this.
+            //So, constant + linear(t) + accelerative (t*t)
+            LinearFriction = BlobLinearFriction,
+            ConstantFriction = BlobConstantFriction,
+            AccumulatedAcceleration = _blobAccelerations,
+            Velocity = _blobVelocities
          };
-         
          
          //Blob sim gets updated
          var jobDataApplyBlobAccelerationToVelocity = new JobApplyDerivative
@@ -263,6 +300,11 @@ namespace Ludopathic.Goo.Managers
          var jobDataCopyBlobsToTransforms = new JobCopyBlobsToTransforms
          {
             BlobPos = _blobPositions
+         };
+         
+         var jobDataCopyCursorsToTransforms = new JobCopyBlobsToTransforms
+         {
+            BlobPos = _cursorPositions
          };
          #endregion //Updates
          
@@ -319,15 +361,19 @@ namespace Ludopathic.Goo.Managers
          //   _jobHandleCursorsInfluenceBlobs.Complete();
             
          //Blob sim gets updated after cursor influence
-         _jobHandleApplyBlobAccelerationToVelocity = jobDataApplyBlobAccelerationToVelocity.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         _jobHandleApplyFrictionToBlobs1 = jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         
+         _jobHandleApplyBlobAccelerationToVelocity = jobDataApplyBlobAccelerationToVelocity.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyFrictionToBlobs1);
             //_jobHandleApplyBlobAccelerationToVelocity.Complete();
          _jobHandleApplyBlobVelocityToPosition = jobDataApplyBlobVelocityToPosition.Schedule(_blobVelocities.Length, 64, _jobHandleApplyBlobAccelerationToVelocity);
             //_jobHandleApplyBlobVelocityToPosition.Complete();
          #endregion //SimUpdateFrame
       
          //temp - needs an interpolator job
-         _jobHandleCopyBlobsToTransforms = jobDataCopyBlobsToTransforms.Schedule<JobCopyBlobsToTransforms>(_blobTransformAccessArray, _jobHandleApplyBlobVelocityToPosition);
-         _jobHandleCopyBlobsToTransforms.Complete();
+         _jobHandleCopyBlobsToTransforms = jobDataCopyBlobsToTransforms.Schedule(_blobTransformAccessArray, _jobHandleApplyBlobVelocityToPosition);
+         _jobHandleCopyCursorsToTransforms = jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCopyBlobsToTransforms);
+         
+         _jobHandleCopyCursorsToTransforms.Complete();
          
          #endregion // Job Kickoff and Dependancy
          

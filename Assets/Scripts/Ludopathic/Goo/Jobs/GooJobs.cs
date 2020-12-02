@@ -10,12 +10,12 @@ namespace Ludopathic.Goo.Jobs
     {
      
         [WriteOnly]
-        public NativeArray<float2> _accumulatedAcceleration;
+        public NativeArray<float2> AccumulatedAcceleration;
 
         
         public void Execute(int index)
         {
-            _accumulatedAcceleration[index] = float2.zero;
+            AccumulatedAcceleration[index] = float2.zero;
         }
     }
 
@@ -68,8 +68,12 @@ namespace Ludopathic.Goo.Jobs
                 //Todo: Would it be good to make a job to store the sqr distance of each cursor to each blob?
                 float deltaSq = math.distancesq(curPos, blobPos);
 
-                float invDelta = math.clamp( (cursorRadSq - deltaSq) / cursorRadSq, 0f, 1f);
-                blobAccel += invDelta * curVel;
+                if (deltaSq <= cursorRadSq)
+                {
+                    float delta = math.sqrt(deltaSq);
+                    float invDelta = 1.0f - math.clamp(delta / cursorRadSq, 0f, 1f);//closer means more force transferred.
+                    blobAccel += invDelta * curVel;
+                }
             }
 
             BlobAccelAccumulator[index] = blobAccel;
@@ -121,16 +125,16 @@ namespace Ludopathic.Goo.Jobs
         
         public void Execute(int index)
         {
-            float2 accel = AccumulatedAcceleration[index];
-            float2 vel = Velocity[index];
-            float speed = math.length(vel);
+            var accel = AccumulatedAcceleration[index];
+            var vel = Velocity[index];
+            float speed = math.lengthsq(vel);
             
             if (speed > 0.0f)
             {
                 float linearFriction =  speed * LinearFriction;
-                float2 velocityDirection = math.normalize(vel);
-                accel += velocityDirection * ConstantFriction;
-                accel += linearFriction * DeltaTime + velocityDirection;
+                var velocityDirection = math.normalize(vel);
+                float2 frictionForce = (velocityDirection * ConstantFriction) + (vel * DeltaTime * linearFriction);
+                accel -= frictionForce;
                 //jerk accel += jerkFriction * DeltaTime * DeltaTime + velocityDirection;
             }
             
