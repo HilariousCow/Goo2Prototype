@@ -67,7 +67,7 @@ namespace Ludopathic.Goo.Jobs
             {
                 float2 curPos = CursorPositions[jIndex];
                 float2 curVel = CursorVelocities[jIndex];
-                float cursorRadSq = CursorRadius[jIndex];
+                float cursorRadSq = CursorRadius[jIndex] * CursorRadius[jIndex];
                 
                 //Todo: Would it be good to make a job to store the sqr distance of each cursor to each blob?
                 float deltaSq = math.distancesq(curPos, blobPos);
@@ -75,7 +75,7 @@ namespace Ludopathic.Goo.Jobs
                 if (deltaSq <= cursorRadSq)
                 {
                     float delta = math.sqrt(deltaSq);
-                    float invDelta = 1.0f - math.clamp(delta / cursorRadSq, 0f, 1f);//closer means more force transferred.
+                    float invDelta = 1.0f - math.clamp(delta / CursorRadius[jIndex], 0f, 1f);//closer means more force transferred.
                     blobAccel += invDelta * curVel;
                 }
             }

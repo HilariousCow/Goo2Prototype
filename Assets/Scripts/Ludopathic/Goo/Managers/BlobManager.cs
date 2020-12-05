@@ -19,7 +19,7 @@ namespace Ludopathic.Goo.Managers
       public GameObject BlobPrefab;
 
       //Gameplay properties
-      
+      public float CursorRadius = 10.0f;
       public float CursorAccel = 5.0f;
       public float CursorLinearFriction = 0.1f;
       public float CursorConstantFriction = 0.8f;
@@ -94,6 +94,17 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleBuildEdges;
 
 
+      
+      //Debug vis
+      public enum BlobColorDebugStyle
+      {
+         Edges,
+         Velocity,
+         Acceleration
+      }
+
+      public BlobColorDebugStyle DebugStyle;
+      
       private void OnEnable()
       {
          Application.targetFrameRate = 600;
@@ -114,7 +125,7 @@ namespace Ludopathic.Goo.Managers
             _cursorAccelerations[index] =  float2.zero;
             _cursorVelocities[index] = float2.zero;
             _cursorPositions[index] = Random.insideUnitCircle;
-            _cursorRadii[index] = 10.0f;
+            _cursorRadii[index] = CursorRadius;
          }
          
          _cursorOutputTransforms = new Transform[NUM_CURSORS];
@@ -414,18 +425,62 @@ namespace Ludopathic.Goo.Managers
       private void LateUpdate()
       {
 
-         for (int i = 0; i < _blobMaterialInstances.Length; i++)
-         {
-            float frac = ((float)_blobEdgeCount[i] / (float) MAX_EDGES_PER_BLOB);
-            Color color = EdgeBlobGradient.Evaluate( frac );
-            _blobMaterialInstances[i].SetColor("BlobColor", color);
-         }
+         DrawDebugBlobColors();
          
          //_jobSplat2.Complete();//force this job to hold up the thread until complete
          //also, looks like you can complete this in late update.
          //also, you only have to complete the job of last job in a chain.
 
          _GameFrame++;
+      }
+
+      //PS this shit is SLOW. Could be a job etc. Maybe look into outputting to material blocks? maybe not necessary because there's jobs to output to particle systems
+      private void DrawDebugBlobColors()
+      {
+
+         float minVal = 0.0f;
+         float maxVal = 1.0f;
+
+         switch (DebugStyle)
+         {
+            case BlobColorDebugStyle.Edges:
+               minVal = 0f;
+               maxVal = MAX_EDGES_PER_BLOB;
+               break;
+            case BlobColorDebugStyle.Velocity:
+               minVal = 0f;
+               maxVal = 10f;
+               break;
+            case BlobColorDebugStyle.Acceleration:
+               minVal = 0f;
+               maxVal = 20f;
+               break;
+            default:
+               throw new ArgumentOutOfRangeException();
+         }
+
+         for (int i = 0; i < _blobMaterialInstances.Length; i++)
+         {
+            float val = minVal;
+            switch (DebugStyle)
+            {
+               case BlobColorDebugStyle.Edges:
+                  val = _blobEdgeCount[i];
+                  break;
+               case BlobColorDebugStyle.Velocity:
+                  val = math.length(_blobVelocities[i]);
+                  break;
+               case BlobColorDebugStyle.Acceleration:
+                  val = math.length(_blobAccelerations[i]);
+                  break;
+               default:
+                  throw new ArgumentOutOfRangeException();
+            }
+            
+            float frac = Mathf.InverseLerp(minVal, maxVal, val);
+            Color color = EdgeBlobGradient.Evaluate( frac );
+            _blobMaterialInstances[i].SetColor("BlobColor", color);
+         }
       }
 
       private void OnDisable()

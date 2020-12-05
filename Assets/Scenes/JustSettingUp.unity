@@ -312,6 +312,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   InputMan: {fileID: 645011140}
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
+  CursorRadius: 5
   CursorAccel: 200
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
@@ -321,6 +322,7 @@ MonoBehaviour:
   PetriDishRadius: 20
   _ListOfAllBlobs: []
   MAX_EDGES_PER_BLOB: 12
+  DebugStyle: 0
   EdgeBlobGradient:
     serializedVersion: 2
     key0: {r: 1, g: 0, b: 0, a: 1}
