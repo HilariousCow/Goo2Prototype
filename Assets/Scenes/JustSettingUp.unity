@@ -316,33 +316,33 @@ MonoBehaviour:
   CursorAccel: 200
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
-  BlobLinearFriction: 0.587
-  BlobConstantFriction: 2.9
-  MaxSpringDistance: 1.71
-  SpringForceConstant: 25.2
+  BlobLinearFriction: 0.443
+  BlobConstantFriction: 6.9
+  MaxSpringDistance: 0.64
+  SpringForceConstant: 43.3
   PetriDishRadius: 20
   NumTeams: 2
   _ListOfAllBlobs: []
-  MAX_EDGES_PER_BLOB: 8
+  MAX_EDGES_PER_BLOB: 6
   DebugStyle: 0
   EdgeBlobGradient:
     serializedVersion: 2
     key0: {r: 1, g: 0, b: 0, a: 1}
-    key1: {r: 0.03529412, g: 0, b: 1, a: 1}
-    key2: {r: 0.3254902, g: 1, b: 0, a: 0}
-    key3: {r: 0, g: 0, b: 0, a: 0}
-    key4: {r: 0, g: 0, b: 0, a: 0}
-    key5: {r: 0, g: 0, b: 0, a: 0}
-    key6: {r: 0, g: 0, b: 0, a: 0}
-    key7: {r: 0, g: 0, b: 0, a: 0}
+    key1: {r: 1, g: 0.5159574, b: 0, a: 1}
+    key2: {r: 0.95000005, g: 1, b: 0, a: 0}
+    key3: {r: 0.19607843, g: 0.8039216, b: 0.29738554, a: 0}
+    key4: {r: 0.19607843, g: 0.793791, b: 0.8039216, a: 0}
+    key5: {r: 1, g: 0, b: 0, a: 0}
+    key6: {r: 1, g: 0, b: 0, a: 0}
+    key7: {r: 1, g: 0, b: 0, a: 0}
     ctime0: 0
-    ctime1: 31418
-    ctime2: 65535
-    ctime3: 0
-    ctime4: 0
-    ctime5: 0
-    ctime6: 0
-    ctime7: 0
+    ctime1: 14842
+    ctime2: 31418
+    ctime3: 49922
+    ctime4: 65535
+    ctime5: 65535
+    ctime6: 65535
+    ctime7: 65535
     atime0: 0
     atime1: 65535
     atime2: 0
@@ -352,7 +352,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_NumColorKeys: 3
+    m_NumColorKeys: 5
     m_NumAlphaKeys: 2
 --- !u!4 &1007287159
 Transform:

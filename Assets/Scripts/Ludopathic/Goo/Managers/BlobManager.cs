@@ -83,6 +83,7 @@ namespace Ludopathic.Goo.Managers
       
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
+      [Range(0, 20)]
       public int MAX_EDGES_PER_BLOB = 12;
       private NativeArray<BlobEdge> _blobEdges;
       private NativeArray<int> _blobEdgeCount;
@@ -548,7 +549,10 @@ namespace Ludopathic.Goo.Managers
 
          foreach (Transform blobOutputTransform in _blobOutputTransforms)
          {
-            Destroy(blobOutputTransform.gameObject);
+            if (blobOutputTransform != null)
+            {
+               Destroy(blobOutputTransform.gameObject);
+            }
          }
       }
    }
