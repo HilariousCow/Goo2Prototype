@@ -21,11 +21,9 @@
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Materials/BlobDummySprite.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Materials/BlobDummySprite.mat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserSettings/EditorUserSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/UserSettings/EditorUserSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,6 +40,7 @@
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/6a/e1b2c7a6/IJobParallelForTransformExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7e/04573972/NativeDisableParallelForRestrictionAttribute.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://D:/Goo2Prototype/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
@@ -59,8 +58,8 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputUnityLegacy.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/JobApplyAcceleration.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputManager.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
       </list>
     </option>
   </component>
@@ -73,6 +72,8 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DebuggerViewTab_PTCS_FirstProportionKey" value="0.34995946" />
+    <property name="DebuggerViewTab_PTCS_LastProportionKey" value="0.3000811" />
     <property name="Discover.Launch.Via.Unity" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -130,10 +131,46 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="976" y="506" key="ANALYSIS_DLG_com.jetbrains.rider.actions.impl.cleanup.RiderCodeCleanupAction$actionPerformed$dlg$1/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606609942546" />
+    <state width="548" height="580" key="DebuggerActiveHint" timestamp="1607200983499">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="548" height="580" key="DebuggerActiveHint/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200983499" />
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog" timestamp="1606855732327">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606855732327" />
+    <state width="2505" height="509" key="GridCell.Tab.0.bottom" timestamp="1607200898085">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898085" />
+    <state width="2505" height="509" key="GridCell.Tab.0.center" timestamp="1607200898085">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898085" />
+    <state width="2505" height="509" key="GridCell.Tab.0.left" timestamp="1607200898084">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898084" />
+    <state width="2505" height="509" key="GridCell.Tab.0.right" timestamp="1607200898085">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898085" />
+    <state width="2505" height="509" key="GridCell.Tab.1.bottom" timestamp="1607200901224">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
+    <state width="2505" height="509" key="GridCell.Tab.1.center" timestamp="1607200901224">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
+    <state width="2505" height="509" key="GridCell.Tab.1.left" timestamp="1607200901224">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
+    <state width="2505" height="509" key="GridCell.Tab.1.right" timestamp="1607200901224">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="509" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
     <state x="1074" y="307" key="RiderGenerateDialog" timestamp="1606712804251">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -142,28 +179,9 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1161" y="297" key="SettingsEditor/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606629004853" />
-    <state x="857" y="367" width="846" height="666" key="find.popup" timestamp="1607193924788">
+    <state x="857" y="367" width="846" height="666" key="find.popup" timestamp="1607207329336">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="857" y="367" width="846" height="666" key="find.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607193924788" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs</url>
-          <line>414</line>
-          <properties documentPath="D:\Goo2Prototype\Assets\Scripts\Ludopathic\Goo\Managers\BlobManager.cs" initialLine="414">
-            <startOffsets>
-              <option value="15857" />
-            </startOffsets>
-            <endOffsets>
-              <option value="15912" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <state x="857" y="367" width="846" height="666" key="find.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607207329336" />
   </component>
 </project>

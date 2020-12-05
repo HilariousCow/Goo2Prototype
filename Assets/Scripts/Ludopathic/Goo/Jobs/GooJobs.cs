@@ -146,8 +146,7 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public NativeArray<float2> Positions;
         
-        [WriteOnly]
-        public NativeArray<int> BlobEdgeCount;
+   
         
         [ReadOnly]
         public float MaxEdgeDistanceSq;
@@ -155,6 +154,9 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public int MaxEdgesPerBlob;
         
+        
+        [WriteOnly]
+        public NativeArray<int> BlobEdgeCount;
         [WriteOnly]
         [NativeDisableParallelForRestriction] 
         public NativeArray<BlobEdge> BlobEdges;//Position.length * MaxEdgesPerBlob
@@ -176,14 +178,11 @@ namespace Ludopathic.Goo.Jobs
                 
                 if (sqDist < MaxEdgeDistanceSq)
                 {
-                    int minIndex = math.min(index, j);
-                    int maxIndex = math.max(index, j);
-                    
                     int newEdgeEntry = indexOfEdgeListEntry + numBlobsFound;//out of index range??
                     BlobEdges[newEdgeEntry] = new BlobEdge
                     {
-                        BlobIndexA = minIndex, 
-                        BlobIndexB = maxIndex
+                        BlobIndexA = index, 
+                        BlobIndexB = j
                     };
                     numBlobsFound++;
 
@@ -193,17 +192,71 @@ namespace Ludopathic.Goo.Jobs
                 }
             }
         }
-
-      /*  public void Execute()
-        {
-            for (int i = 0; i < Positions.Length; i++)
-            {
-                Execute(i);
-            }
-        }*/
     }
-    
-    
+
+    [BurstCompile]
+    public struct JobSpringForce : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeArray<float2> Positions;
+        
+        //read and write
+        public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
+
+        [ReadOnly]
+        public int MaxEdgesPerBlob;
+        
+        [ReadOnly]
+        public NativeArray<int> BlobEdgeCount;
+        
+        [ReadOnly]
+        [NativeDisableParallelForRestriction] 
+        public NativeArray<BlobEdge> BlobEdges;
+
+        [ReadOnly]
+        public float MaxEdgeDistanceRaw;
+        
+        [ReadOnly]
+        public float SpringConstant;
+        
+        //for each blob
+        public void Execute(int index)
+        {
+            float2 posA = Positions[index];
+            
+            
+            int numBlobEdges = BlobEdgeCount[index];
+            //for each nearby blob
+            for (int j = 0; j < numBlobEdges; j++)
+            {
+                int indexOfOtherBlobInBigArray = MaxEdgesPerBlob * index + j;
+
+                int indexOfOtherBlob = BlobEdges[indexOfOtherBlobInBigArray].BlobIndexB;
+                float2 posB = Positions[indexOfOtherBlob];
+                
+                //simple spring force at first
+                float2 delta = posA - posB;
+                float deltaDist = math.length(posA - posB);
+
+                if (deltaDist > 0.0)
+                {
+                    float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
+
+                    frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
+                    float k = frac - 0.5f;
+                    float f = k * SpringConstant;
+
+                    float2 dir = math.normalize(delta);
+                    
+                    //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
+                    float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);
+                    
+                    AccelerationAccumulator[index] += force;
+                }
+            }
+        }
+    }
+
     //Accumulate friction
     [BurstCompile]
     public struct JobApplyLinearAndConstantFriction : IJobParallelFor

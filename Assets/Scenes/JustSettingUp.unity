@@ -316,12 +316,14 @@ MonoBehaviour:
   CursorAccel: 200
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
-  BlobLinearFriction: 0.51
-  BlobConstantFriction: 2
-  MaxSpringDistance: 0.99
+  BlobLinearFriction: 0.587
+  BlobConstantFriction: 2.9
+  MaxSpringDistance: 1.71
+  SpringForceConstant: 25.2
   PetriDishRadius: 20
+  NumTeams: 2
   _ListOfAllBlobs: []
-  MAX_EDGES_PER_BLOB: 12
+  MAX_EDGES_PER_BLOB: 8
   DebugStyle: 0
   EdgeBlobGradient:
     serializedVersion: 2

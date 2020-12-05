@@ -14,7 +14,6 @@ namespace Ludopathic.Goo.Managers
 {
    public class BlobManager : MonoBehaviour
    {
-
       public InputManager InputMan;
       public GameObject BlobPrefab;
 
@@ -25,18 +24,27 @@ namespace Ludopathic.Goo.Managers
       public float CursorConstantFriction = 0.8f;
       
       [Space]
+      [Range(0.0f, 1.0f)]
       public float BlobLinearFriction;
+      [Range(0.0f, 20.0f)]
       public float BlobConstantFriction;
       
       [Space]
+      [Range(0.5f, 10.0f)]
       public float MaxSpringDistance = 4f;
-
+      [Range(0.0f, 50.0f)]
+      public float SpringForceConstant = 15f;
+      
       [Space]
       public float PetriDishRadius = 2f;
+
+
+      public int NumTeams = 2;
       //One blob manager exists per game, or is possibly just a singleton to store persistent swap data for all blobs.
       [SerializeField]
       public List<BlobData> _ListOfAllBlobs;//CPU side starting values.
 
+      
       //
       //Job memory
       //
@@ -59,6 +67,7 @@ namespace Ludopathic.Goo.Managers
       
       //Blob Properties.
       private NativeArray<int> _blobTeamIDs;
+      //private NativeArray<int> _blobGroupIDs;//next up!
       private NativeArray<float2> _blobAccelerations;
       private NativeArray<float2> _blobVelocities;
       private NativeArray<float2> _blobPositions;
@@ -82,7 +91,11 @@ namespace Ludopathic.Goo.Managers
       private static int _GameFrame = 0;
       private JobHandle _jobHandleResetBlobAccelerations;
       private JobHandle _jobHandleResetCursorAccelerations;
+      private JobHandle _jobHandleBuildEdges;
       private JobHandle _jobHandleResetJobs;
+      
+      private JobHandle _jobHandleSpringForces;
+      
       private JobHandle _jobHandleSetCursorAcceleration;
       private JobHandle _jobHandleApplyCursorFriction;
       private JobHandle _jobHandleApplyCursorAccelAndVelocity;
@@ -91,7 +104,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleUpdateBlobPositions;
       private JobHandle _jobHandleCopyBlobsToTransforms;
       private JobHandle _jobHandleCopyCursorsToTransforms;
-      private JobHandle _jobHandleBuildEdges;
+      
 
 
       
@@ -100,7 +113,8 @@ namespace Ludopathic.Goo.Managers
       {
          Edges,
          Velocity,
-         Acceleration
+         Acceleration,
+         TeamID
       }
 
       public BlobColorDebugStyle DebugStyle;
@@ -120,7 +134,7 @@ namespace Ludopathic.Goo.Managers
 
          for (int index = 0; index < NUM_CURSORS; index++)
          {
-            _cursorTeamIDs[index] = index;
+            _cursorTeamIDs[index] = index % NUM_CURSORS;
             _cursorInputDeltas[index] = float2.zero;
             _cursorAccelerations[index] =  float2.zero;
             _cursorVelocities[index] = float2.zero;
@@ -169,6 +183,7 @@ namespace Ludopathic.Goo.Managers
          //copy init values into scratch data
          for (int index = 0; index < TRANSFORM_ARRAY_SIZE; index++)
          {
+            _blobTeamIDs[index] = index % NumTeams;
             _blobVelocities[index] = _ListOfAllBlobs[index].Vel;
             _blobPositions[index] = _ListOfAllBlobs[index].Pos;
             _blobAccelerations[index] = _ListOfAllBlobs[index].Accel;
@@ -275,7 +290,17 @@ namespace Ludopathic.Goo.Managers
             MaxEdgesPerBlob = MAX_EDGES_PER_BLOB
             
          };
-         
+
+         var jobSpringForces = new JobSpringForce()
+         {
+            Positions = _blobPositions,
+            BlobEdges = _blobEdges,
+            BlobEdgeCount = _blobEdgeCount,
+            MaxEdgesPerBlob = MAX_EDGES_PER_BLOB,
+            MaxEdgeDistanceRaw = MaxSpringDistance,
+            SpringConstant = SpringForceConstant,
+            AccelerationAccumulator = _blobAccelerations
+         };
          
          //update cursor accel based on inputs
          var jobDataSetCursorAcceleration = new JobSetAcceleration
@@ -394,12 +419,12 @@ namespace Ludopathic.Goo.Managers
          _jobHandleCursorsInfluenceBlobs = jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleApplyCursorAccelAndVelocity);
          
          //Cursor Influences blobs once it's ready
-         
-         
-         //todo: blob spring forces.
-         
          //Blob sim gets updated after cursor influence
-         _jobHandleApplyBlobFriction = jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         
+         //blobs all figure out how much push and pull is coming from neighbouring blobs.
+         _jobHandleSpringForces = jobSpringForces.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         
+         _jobHandleApplyBlobFriction = jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
          _jobHandleUpdateBlobPositions = jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
          
          #endregion //SimUpdateFrame
@@ -419,6 +444,8 @@ namespace Ludopathic.Goo.Managers
          //No. You must call "complete" on any handle that has something dependant on it. Which is all of them, you'd expect.
          //maybe i only need to complete the last, since that's dependant.
       }
+
+      
 
 
       public Gradient EdgeBlobGradient;
@@ -455,6 +482,10 @@ namespace Ludopathic.Goo.Managers
                minVal = 0f;
                maxVal = 20f;
                break;
+            case BlobColorDebugStyle.TeamID:
+               minVal = 0f;
+               maxVal = 5;
+               break;
             default:
                throw new ArgumentOutOfRangeException();
          }
@@ -472,6 +503,9 @@ namespace Ludopathic.Goo.Managers
                   break;
                case BlobColorDebugStyle.Acceleration:
                   val = math.length(_blobAccelerations[i]);
+                  break;
+               case BlobColorDebugStyle.TeamID:
+                  val = _blobTeamIDs[i];
                   break;
                default:
                   throw new ArgumentOutOfRangeException();
@@ -511,6 +545,11 @@ namespace Ludopathic.Goo.Managers
 
          if (_blobEdges.IsCreated) _blobEdges.Dispose();
          if (_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
+
+         foreach (Transform blobOutputTransform in _blobOutputTransforms)
+         {
+            Destroy(blobOutputTransform.gameObject);
+         }
       }
    }
 }
