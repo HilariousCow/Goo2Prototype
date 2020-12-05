@@ -1,3 +1,5 @@
+using System;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -5,7 +7,7 @@ using UnityEngine.Jobs;
 
 namespace Ludopathic.Goo.Jobs
 {
-    
+    [BurstCompile]
     public struct JobResetAcceleration : IJobParallelFor
     {
      
@@ -19,6 +21,7 @@ namespace Ludopathic.Goo.Jobs
         }
     }
 
+    [BurstCompile]
     public struct JobSetAcceleration : IJobParallelFor
     {
         [ReadOnly]
@@ -34,6 +37,7 @@ namespace Ludopathic.Goo.Jobs
         }
     }
 
+    [BurstCompile]
     public struct JobCursorsInfluenceBlobs : IJobParallelFor
     {
         //not sure if i need delta time?
@@ -80,7 +84,7 @@ namespace Ludopathic.Goo.Jobs
         }
     }
     
-    
+    [BurstCompile]
     //This is actually "apply differential" so it's used for acceleration->velocity, and velocity->position
     public struct JobApplyDerivative : IJobParallelFor
     {
@@ -102,7 +106,106 @@ namespace Ludopathic.Goo.Jobs
         }
     }
     
+    [BurstCompile]
+    //Combine the above into a two-fer to reduce overhead
+    public struct JobApplyAcceelrationAndVelocity : IJobParallelFor
+    {
+        [ReadOnly]
+        public float DeltaTime;
+        
+        [ReadOnly]
+        public NativeArray<float2> AccumulatedAcceleration;
+
+        public NativeArray<float2> VelocityInAndOut;
+        
+        public NativeArray<float2> PositionInAndOut;
+        
+        public void Execute(int index)
+        {
+            float2 vel = VelocityInAndOut[index];
+            float2 pos = PositionInAndOut[index];
+
+            vel = vel + AccumulatedAcceleration[index] * DeltaTime;
+            pos = pos + VelocityInAndOut[index] * DeltaTime;
+            
+            VelocityInAndOut[index] = vel;
+            PositionInAndOut[index] = pos;
+        }
+    }
+
+    public struct BlobEdge
+    {
+        public int BlobIndexA;
+        public int BlobIndexB;
+    }
+    
+    [BurstCompile]
+    //this could do with more nuance/smaller search space but it basically works.
+    public struct JobFindEdges : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeArray<float2> Positions;
+        
+        [WriteOnly]
+        public NativeArray<int> BlobEdgeCount;
+        
+        [ReadOnly]
+        public float MaxEdgeDistanceSq;
+
+        [ReadOnly]
+        public int MaxEdgesPerBlob;
+        
+        [WriteOnly]
+        [NativeDisableParallelForRestriction] 
+        public NativeArray<BlobEdge> BlobEdges;//Position.length * MaxEdgesPerBlob
+        
+    
+        
+        public void Execute(int index)//for a blob
+        {
+            int numBlobsFound = 0;
+            float2 posA = Positions[index];
+            for (int j = 0; j < Positions.Length && numBlobsFound < MaxEdgesPerBlob; j++)
+            {
+                if (j == index) continue;
+                
+                float2 posB = Positions[j];
+                float sqDist = math.lengthsq(posA - posB);
+
+                int indexOfEdgeListEntry = index * MaxEdgesPerBlob;//staggered index.
+                
+                if (sqDist < MaxEdgeDistanceSq)
+                {
+                    int minIndex = math.min(index, j);
+                    int maxIndex = math.max(index, j);
+                    
+                    int newEdgeEntry = indexOfEdgeListEntry + numBlobsFound;//out of index range??
+                    BlobEdges[newEdgeEntry] = new BlobEdge
+                    {
+                        BlobIndexA = minIndex, 
+                        BlobIndexB = maxIndex
+                    };
+                    numBlobsFound++;
+
+                    BlobEdgeCount[index] = numBlobsFound;
+
+                    if (numBlobsFound == MaxEdgesPerBlob) break;
+                }
+            }
+        }
+
+      /*  public void Execute()
+        {
+            for (int i = 0; i < Positions.Length; i++)
+            {
+                Execute(i);
+            }
+        }*/
+    }
+    
+    
     //Accumulate friction
+    [BurstCompile]
     public struct JobApplyLinearAndConstantFriction : IJobParallelFor
     {
         [ReadOnly]
@@ -143,6 +246,7 @@ namespace Ludopathic.Goo.Jobs
     }
     
     //note: would be cool for this to be done outside the sim update, and for it to take time-since-last-game-frame into account
+    [BurstCompile]
     public struct JobCopyBlobsToTransforms : IJobParallelForTransform
     {
         [ReadOnly]

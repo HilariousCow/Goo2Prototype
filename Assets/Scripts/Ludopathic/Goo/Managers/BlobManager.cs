@@ -24,15 +24,23 @@ namespace Ludopathic.Goo.Managers
       public float CursorLinearFriction = 0.1f;
       public float CursorConstantFriction = 0.8f;
       
-      
+      [Space]
       public float BlobLinearFriction;
       public float BlobConstantFriction;
       
-      
+      [Space]
+      public float MaxSpringDistance = 4f;
+
+      [Space]
+      public float PetriDishRadius = 2f;
       //One blob manager exists per game, or is possibly just a singleton to store persistent swap data for all blobs.
       [SerializeField]
-      public List<BlobData> _ListOfAllBlobs;
+      public List<BlobData> _ListOfAllBlobs;//CPU side starting values.
 
+      //
+      //Job memory
+      //
+      
       //Cursor properties
       private const int NUM_CURSORS = 1;
       private NativeArray<int> _cursorTeamIDs;
@@ -47,7 +55,7 @@ namespace Ludopathic.Goo.Managers
       private Transform[] _cursorOutputTransforms;
       private TransformAccessArray _cursorTransformAccessArray;
       
-      
+    
       
       //Blob Properties.
       private NativeArray<int> _blobTeamIDs;
@@ -58,14 +66,34 @@ namespace Ludopathic.Goo.Managers
       
       //Blob displays.
       private Transform[] _blobOutputTransforms;
+      private Material[] _blobMaterialInstances;
+      
+      
       private TransformAccessArray _blobTransformAccessArray;
 
       
+      //Goo Graph
+      //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
+      public int MAX_EDGES_PER_BLOB = 12;
+      private NativeArray<BlobEdge> _blobEdges;
+      private NativeArray<int> _blobEdgeCount;
+      
       //Job Handles
-      
-     
-      
-      
+      private static int _GameFrame = 0;
+      private JobHandle _jobHandleResetBlobAccelerations;
+      private JobHandle _jobHandleResetCursorAccelerations;
+      private JobHandle _jobHandleResetJobs;
+      private JobHandle _jobHandleSetCursorAcceleration;
+      private JobHandle _jobHandleApplyCursorFriction;
+      private JobHandle _jobHandleApplyCursorAccelAndVelocity;
+      private JobHandle _jobHandleCursorsInfluenceBlobs;
+      private JobHandle _jobHandleApplyBlobFriction;
+      private JobHandle _jobHandleUpdateBlobPositions;
+      private JobHandle _jobHandleCopyBlobsToTransforms;
+      private JobHandle _jobHandleCopyCursorsToTransforms;
+      private JobHandle _jobHandleBuildEdges;
+
+
       private void OnEnable()
       {
          Application.targetFrameRate = 600;
@@ -105,13 +133,10 @@ namespace Ludopathic.Goo.Managers
          //Blob enabling
          
          
-         
-         
-         
          //spawn values.
          for (int index = 0; index < TRANSFORM_ARRAY_SIZE; index++)
          {
-            Vector3 randomPos = Random.insideUnitCircle * 20.0f;
+            Vector3 randomPos = Random.insideUnitCircle * PetriDishRadius;
             Vector3 randomVel = Random.insideUnitCircle;
 
             _ListOfAllBlobs[index] = new BlobData
@@ -140,31 +165,30 @@ namespace Ludopathic.Goo.Managers
          
          //output things
          _blobOutputTransforms = new Transform[TRANSFORM_ARRAY_SIZE];
+         _blobMaterialInstances = new Material[TRANSFORM_ARRAY_SIZE];
          for (int index = 0; index < TRANSFORM_ARRAY_SIZE; index++)
          {
             GameObject blobInstance = Instantiate(BlobPrefab);
             blobInstance.name = $"BlobOutput{index}";
             blobInstance.transform.rotation = Quaternion.Euler(90f,0f,0f);
             _blobOutputTransforms[index] = blobInstance.transform;
+            _blobMaterialInstances[index] = Instantiate( blobInstance.GetComponent<MeshRenderer>().sharedMaterial );
+            blobInstance.GetComponent<MeshRenderer>().sharedMaterial = _blobMaterialInstances[index];
          }
 
+         
+         //
+         // Goo graph
+         //
+
+         
+         _blobEdges = new NativeArray<BlobEdge>(TRANSFORM_ARRAY_SIZE * MAX_EDGES_PER_BLOB, Allocator.Persistent);
+         _blobEdgeCount = new NativeArray<int>(TRANSFORM_ARRAY_SIZE, Allocator.Persistent);
+         
          _blobTransformAccessArray = new TransformAccessArray(_blobOutputTransforms);
       }
 
-      private static int _GameFrame = 0;
-      private JobHandle _jobHandleResetBlobAccelerations;
-      private JobHandle _jobHandleResetCursorAccelerations;
-      private JobHandle _jobHandleResetJobs;
-      private JobHandle _jobHandleSetCursorAcceleration;
-      private JobHandle _jobHandleApplyCursorFriction;
-      private JobHandle _jobHandleApplyCursorAccelerationToVelocity;
-      private JobHandle _jobHandleApplyCursorVelocityToPosition;
-      private JobHandle _jobHandleCursorsInfluenceBlobs;
-      private JobHandle _jobHandleApplyBlobAccelerationToVelocity;
-      private JobHandle _jobHandleApplyBlobVelocityToPosition;
-      private JobHandle _jobHandleCopyBlobsToTransforms;
-      private JobHandle _jobHandleCopyCursorsToTransforms;
-      private JobHandle _jobHandleApplyFrictionToBlobs1;
+    
 
       private void Update()
       {
@@ -220,10 +244,27 @@ namespace Ludopathic.Goo.Managers
          };
          #endregion //ResetBeginningOfSimFrame
          
+         
+         
+         
          #region Updates
          //
          // Cursors must be done first. Luckily there's very few
          //
+         
+         
+         //build edges with existing positions
+
+         var jobBuildEdges = new JobFindEdges
+         {
+            Positions = _blobPositions,
+            BlobEdges = _blobEdges,
+            BlobEdgeCount = _blobEdgeCount,
+            MaxEdgeDistanceSq = MaxSpringDistance * MaxSpringDistance,
+            MaxEdgesPerBlob = MAX_EDGES_PER_BLOB
+            
+         };
+         
          
          //update cursor accel based on inputs
          var jobDataSetCursorAcceleration = new JobSetAcceleration
@@ -244,21 +285,16 @@ namespace Ludopathic.Goo.Managers
             Velocity = _cursorVelocities
          };
          
-         var jobDataApplyCursorAccelerationToVelocity = new JobApplyDerivative
+         
+         var jobDataUpdateCursorPositions = new JobApplyAcceelrationAndVelocity
          {
             DeltaTime = deltaTime,
             AccumulatedAcceleration = _cursorAccelerations,
-            VelocityInAndOut = _cursorVelocities
+            VelocityInAndOut = _cursorVelocities,
+            PositionInAndOut = _cursorPositions
          };
          
-         //We update the cursor pos only after we've influenced the blobs, so that we don't "leave behind" blobs.
-         //Consider moving this up one if that's no good
-         var jobDataApplyCursorVelocityToPosition = new JobApplyDerivative
-         {
-            DeltaTime = deltaTime,
-            AccumulatedAcceleration = _cursorVelocities,
-            VelocityInAndOut = _cursorPositions
-         };
+     
          
          //Now we can update the blobs with the new state of the cursors
          var jobDataCursorsInfluenceBlobs = new JobCursorsInfluenceBlobs
@@ -283,19 +319,14 @@ namespace Ludopathic.Goo.Managers
          };
          
          //Blob sim gets updated
-         var jobDataApplyBlobAccelerationToVelocity = new JobApplyDerivative
+         var jobDataUpdateBlobPositions = new JobApplyAcceelrationAndVelocity
          {
             DeltaTime = deltaTime,
             AccumulatedAcceleration = _blobAccelerations,
-            VelocityInAndOut = _blobVelocities
+            VelocityInAndOut = _blobVelocities,
+            PositionInAndOut = _blobPositions
          };
-         
-         var jobDataApplyBlobVelocityToPosition = new JobApplyDerivative
-         {
-            DeltaTime = deltaTime,
-            AccumulatedAcceleration = _blobVelocities,
-            VelocityInAndOut = _blobPositions
-         };
+     
             
          var jobDataCopyBlobsToTransforms = new JobCopyBlobsToTransforms
          {
@@ -314,10 +345,6 @@ namespace Ludopathic.Goo.Managers
          //
          // Fire off jobs with all the data that has been set up above. Prefer not to in-line job data and job scheduling due to dependancies
          //
-         //aka var job = IJobParallelForTransformExtensions.Schedule<JobCopyBlobsToTransforms>( jobData, _blobTransforms, default);
-         //_jobSplat1 = jobData.Schedule<JobCopyBlobsToTransforms>(_blobTransforms, default);
-         //_jobSplat2 = jobData.Schedule<JobCopyBlobsToTransforms>(_blobTransforms, _jobSplat1);
-         
          
          #region ResetBeginningOfSimFrame
          _jobHandleResetBlobAccelerations = jobDataResetBlobAccelerations.Schedule(_blobAccelerations.Length, 64);
@@ -325,52 +352,52 @@ namespace Ludopathic.Goo.Managers
          
          #endregion //ResetBeginningOfSimFrame
          
-         //todo require above jobs are complete in combo
-         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations);
-      
          //_jobHandleResetJobs.Complete();
+
+         #region Graph Building
+         //Construct list of Edges
+         
+         //Build list of edges per node (limit: closest N per node)
+         _jobHandleBuildEdges = jobBuildEdges.Schedule(_blobPositions.Length, 64);
+         //_jobHandleBuildEdges = jobBuildEdges.Schedule();
+
+         #endregion // Graph Building
+         
+         
+         //todo require above jobs are complete in combo
+         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleBuildEdges);
          
          #region SimUpdateFrame
          //
          // Cursors must be done first. Luckily there's very few
          //
          
-         //update cursor accel based on inputs
-         
-         //to continue: keep turning these copies of the job datas into job handles/schedules with dependancies.
-         //after that: make the job handles into members and .Complete() them in late update.
-         
-         //Note to self: when iterating the sim multiple times per frame, I will need to .Complete() them before iterating another sim step.
-         
+      
          //update cursors
          _jobHandleSetCursorAcceleration = jobDataSetCursorAcceleration.Schedule(_cursorInputDeltas.Length, 1, _jobHandleResetJobs);
          
          _jobHandleApplyCursorFriction = jobDataApplyCursorFriction.Schedule(_cursorInputDeltas.Length, 1, _jobHandleSetCursorAcceleration);
          
-         _jobHandleApplyCursorAccelerationToVelocity = jobDataApplyCursorAccelerationToVelocity.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorFriction);
+         _jobHandleApplyCursorAccelAndVelocity = jobDataUpdateCursorPositions.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorFriction);
          
-         _jobHandleApplyCursorVelocityToPosition = jobDataApplyCursorVelocityToPosition.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorAccelerationToVelocity);
-         
-         
-         _jobHandleCursorsInfluenceBlobs = jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleApplyCursorVelocityToPosition);
-         
-         
+         _jobHandleCursorsInfluenceBlobs = jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleApplyCursorAccelAndVelocity);
          
          //Cursor Influences blobs once it's ready
          
-         //   _jobHandleCursorsInfluenceBlobs.Complete();
-            
-         //Blob sim gets updated after cursor influence
-         _jobHandleApplyFrictionToBlobs1 = jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
          
-         _jobHandleApplyBlobAccelerationToVelocity = jobDataApplyBlobAccelerationToVelocity.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyFrictionToBlobs1);
-            //_jobHandleApplyBlobAccelerationToVelocity.Complete();
-         _jobHandleApplyBlobVelocityToPosition = jobDataApplyBlobVelocityToPosition.Schedule(_blobVelocities.Length, 64, _jobHandleApplyBlobAccelerationToVelocity);
-            //_jobHandleApplyBlobVelocityToPosition.Complete();
+         //todo: blob spring forces.
+         
+         //Blob sim gets updated after cursor influence
+         _jobHandleApplyBlobFriction = jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         _jobHandleUpdateBlobPositions = jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
+         
          #endregion //SimUpdateFrame
       
          //temp - needs an interpolator job
-         _jobHandleCopyBlobsToTransforms = jobDataCopyBlobsToTransforms.Schedule(_blobTransformAccessArray, _jobHandleApplyBlobVelocityToPosition);
+         
+         //Todo: spit out into a particle effect instead of transforms, which are probably slow as heck
+         //but this is still somewhat useful for debug
+         _jobHandleCopyBlobsToTransforms = jobDataCopyBlobsToTransforms.Schedule(_blobTransformAccessArray, _jobHandleUpdateBlobPositions);
          _jobHandleCopyCursorsToTransforms = jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCopyBlobsToTransforms);
          
          _jobHandleCopyCursorsToTransforms.Complete();
@@ -382,11 +409,17 @@ namespace Ludopathic.Goo.Managers
          //maybe i only need to complete the last, since that's dependant.
       }
 
+
+      public Gradient EdgeBlobGradient;
       private void LateUpdate()
       {
-         
-         
-         
+
+         for (int i = 0; i < _blobMaterialInstances.Length; i++)
+         {
+            float frac = ((float)_blobEdgeCount[i] / (float) MAX_EDGES_PER_BLOB);
+            Color color = EdgeBlobGradient.Evaluate( frac );
+            _blobMaterialInstances[i].SetColor("BlobColor", color);
+         }
          
          //_jobSplat2.Complete();//force this job to hold up the thread until complete
          //also, looks like you can complete this in late update.
@@ -419,6 +452,10 @@ namespace Ludopathic.Goo.Managers
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
          
          if(_blobTransformAccessArray.isCreated) _blobTransformAccessArray.Dispose();
+
+
+         if (_blobEdges.IsCreated) _blobEdges.Dispose();
+         if (_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
       }
    }
 }
