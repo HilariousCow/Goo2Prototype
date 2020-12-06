@@ -24,15 +24,15 @@ namespace Ludopathic.Goo.Managers
       public float CursorConstantFriction = 0.8f;
       
       [Space]
-      [Range(0.0f, 1.0f)]
+      [Range(0.0f, 1.0f)]//stubborness
       public float BlobLinearFriction;
-      [Range(0.0f, 20.0f)]
+      [Range(0.0f, 50.0f)]//stiffness
       public float BlobConstantFriction;
       
       [Space]
       [Range(0.5f, 10.0f)]
       public float MaxSpringDistance = 4f;
-      [Range(0.0f, 50.0f)]
+      [Range(0.0f, 100.0f)]
       public float SpringForceConstant = 15f;
       
       [Space]
