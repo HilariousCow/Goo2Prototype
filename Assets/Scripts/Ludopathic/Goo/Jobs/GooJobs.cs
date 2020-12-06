@@ -40,25 +40,24 @@ namespace Ludopathic.Goo.Jobs
     [BurstCompile]
     public struct JobCursorsInfluenceBlobs : IJobParallelFor
     {
-        //not sure if i need delta time?
-        
         [ReadOnly]
         public NativeArray<float2> CursorPositions;
-        
         [ReadOnly]
         public NativeArray<float2> CursorVelocities;
-
         [ReadOnly]
         public NativeArray<float> CursorRadius;
+        
         
         [ReadOnly]
         public NativeArray<float2> BlobPositions;
       
         public NativeArray<float2> BlobAccelAccumulator;
         
+        //For each cursor.
+        //May be more efficient to go through each blob.
+        //Also just the blobs close enough for blob influence
         public void Execute(int index)
         {
-            
             float2 blobPos = BlobPositions[index];
             float2 blobAccel = BlobAccelAccumulator[index];
             
@@ -76,7 +75,8 @@ namespace Ludopathic.Goo.Jobs
                 {
                     float delta = math.sqrt(deltaSq);
                     float invDelta = 1.0f - math.clamp(delta / CursorRadius[jIndex], 0f, 1f);//closer means more force transferred.
-                    blobAccel += invDelta * curVel;
+                    blobAccel += invDelta * curVel;//todo add some kinda proportion control thing.
+                    //todo: id checks? or really, we should block the blob values into groups and stuff first.
                 }
             }
 
@@ -239,7 +239,9 @@ namespace Ludopathic.Goo.Jobs
                 if (deltaDist > 0.0)
                 {
                     float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
-
+                    float falloff = (1.0f - frac);
+                    falloff *= falloff;
+                    
                     frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
                     float k = frac - 0.5f;
                     float f = k * SpringConstant;
@@ -247,7 +249,8 @@ namespace Ludopathic.Goo.Jobs
                     float2 dir = math.normalize(delta);
                     
                     //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
-                    float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);
+                    
+                    float2 force = -f * dir * falloff;
                     
                     AccelerationAccumulator[index] += force;
                 }
