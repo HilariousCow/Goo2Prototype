@@ -312,18 +312,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   InputMan: {fileID: 645011140}
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
-  CursorRadius: 5
+  CursorRadius: 7.58
   CursorAccel: 201.66
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
-  BlobLinearFriction: 0.638
+  BlobLinearFriction: 0.132
   BlobConstantFriction: 7.3
-  MaxSpringDistance: 0.64
+  MaxSpringDistance: 0.94
   SpringForceConstant: 48.4
   PetriDishRadius: 20
   NumTeams: 2
   _ListOfAllBlobs: []
-  MAX_EDGES_PER_BLOB: 6
+  MAX_EDGES_PER_BLOB: 8
   DebugStyle: 0
   EdgeBlobGradient:
     serializedVersion: 2

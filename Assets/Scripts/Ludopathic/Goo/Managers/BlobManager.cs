@@ -83,6 +83,7 @@ namespace Ludopathic.Goo.Managers
       
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
+      private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
       [Range(0, 20)]
       public int MAX_EDGES_PER_BLOB = 12;
       private NativeArray<BlobEdge> _blobEdges;
@@ -209,7 +210,7 @@ namespace Ludopathic.Goo.Managers
          //
 
          
-         _blobEdges = new NativeArray<BlobEdge>(TRANSFORM_ARRAY_SIZE * MAX_EDGES_PER_BLOB, Allocator.Persistent);
+         _blobEdges = new NativeArray<BlobEdge>(TRANSFORM_ARRAY_SIZE * ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          _blobEdgeCount = new NativeArray<int>(TRANSFORM_ARRAY_SIZE, Allocator.Persistent);
          
          _blobTransformAccessArray = new TransformAccessArray(_blobOutputTransforms);
