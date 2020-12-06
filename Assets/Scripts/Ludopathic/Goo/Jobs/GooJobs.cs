@@ -185,12 +185,10 @@ namespace Ludopathic.Goo.Jobs
                         BlobIndexB = j
                     };
                     numBlobsFound++;
-
-                    BlobEdgeCount[index] = numBlobsFound;
-
                     if (numBlobsFound == MaxEdgesPerBlob) break;
                 }
             }
+            BlobEdgeCount[index] = numBlobsFound;
         }
     }
 
@@ -283,15 +281,29 @@ namespace Ludopathic.Goo.Jobs
         {
             var accel = AccumulatedAcceleration[index];
             var vel = Velocity[index];
-            float speed = math.lengthsq(vel);
+            float speedSquared = math.lengthsq(vel);
             
-            if (speed > 0.0f)
+            if (speedSquared > 0.0f)
             {
-                float linearFriction =  speed * LinearFriction;
-                var velocityDirection = math.normalize(vel);
-                float2 frictionForce = (velocityDirection * ConstantFriction) + (vel * DeltaTime * linearFriction);
+                float linearFriction =  speedSquared * LinearFriction;
+                float2 velocityDirection = math.normalize(vel);
+                float rawSpeed = math.sqrt(speedSquared);
+                
+               
+                //Linear friction should only ever bring us down to zero.
+                float speedChangeMax = rawSpeed;
+                float speedChangeDueToConstant = ConstantFriction * DeltaTime;
+                float clampedSpeedChange = math.min(speedChangeMax, speedChangeDueToConstant) / DeltaTime;
+                
+                float2 constantFrictionForce = (velocityDirection * clampedSpeedChange ) ;
+                float2 linearFrictionForce = (vel * DeltaTime * linearFriction);
+
+                float2 frictionForce = constantFrictionForce + linearFrictionForce;
+                
                 accel -= frictionForce;
-                //jerk accel += jerkFriction * DeltaTime * DeltaTime + velocityDirection;
+                
+                //I bet i'm meant to have a log in here somwhere.
+                
             }
             
             AccumulatedAcceleration[index] = accel;

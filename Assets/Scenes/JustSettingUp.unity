@@ -316,10 +316,10 @@ MonoBehaviour:
   CursorAccel: 201.66
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
-  BlobLinearFriction: 0.7
-  BlobConstantFriction: 2.3
+  BlobLinearFriction: 0.638
+  BlobConstantFriction: 7.3
   MaxSpringDistance: 0.64
-  SpringForceConstant: 29.8
+  SpringForceConstant: 48.4
   PetriDishRadius: 20
   NumTeams: 2
   _ListOfAllBlobs: []
