@@ -20,10 +20,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/contentModel.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/indexLayout.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/indexLayout.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Packages/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Packages/packages-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/packages-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/PackageManagerSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/PackageManagerSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,13 +40,12 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputManager.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://D:/Goo2Prototype/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7d/dd176bd2/IJobParallelForTransform.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/6a/e1b2c7a6/IJobParallelForTransformExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7e/04573972/NativeDisableParallelForRestrictionAttribute.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/Goo2Prototype/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/8c/b1109a88/ParticleSystemJobData.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -93,10 +97,10 @@
       </option>
       <method v="2" />
     </configuration>
-    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="45492">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
-      <option name="pid" value="45492" />
+      <option name="pid" />
       <option name="selectedOptions">
         <set />
       </option>
@@ -122,6 +126,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
@@ -139,38 +144,70 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606855732327" />
-    <state width="2505" height="509" key="GridCell.Tab.0.bottom" timestamp="1607200898085">
+    <state width="2505" height="123" key="GridCell.Tab.0.bottom" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898085" />
-    <state width="2505" height="509" key="GridCell.Tab.0.center" timestamp="1607200898085">
+    <state width="2505" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.0.center" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898085" />
-    <state width="2505" height="509" key="GridCell.Tab.0.left" timestamp="1607200898084">
+    <state width="2505" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.0.left" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898084" />
-    <state width="2505" height="509" key="GridCell.Tab.0.right" timestamp="1607200898085">
+    <state width="2505" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.0.right" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200898085" />
-    <state width="2505" height="509" key="GridCell.Tab.1.bottom" timestamp="1607200901224">
+    <state width="2505" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.1.bottom" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
-    <state width="2505" height="509" key="GridCell.Tab.1.center" timestamp="1607200901224">
+    <state width="2505" height="123" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.1.center" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
-    <state width="2505" height="509" key="GridCell.Tab.1.left" timestamp="1607200901224">
+    <state width="2505" height="123" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.1.left" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
-    <state width="2505" height="509" key="GridCell.Tab.1.right" timestamp="1607200901224">
+    <state width="2505" height="123" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.1.right" timestamp="1607378496416">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="2505" height="509" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200901224" />
+    <state width="2505" height="123" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.2.bottom" timestamp="1607378496417">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.2.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496417" />
+    <state width="2505" height="123" key="GridCell.Tab.2.center" timestamp="1607378496416">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.2.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.2.left" timestamp="1607378496416">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.2.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496416" />
+    <state width="2505" height="123" key="GridCell.Tab.2.right" timestamp="1607378496417">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.2.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496417" />
+    <state width="2505" height="123" key="GridCell.Tab.3.bottom" timestamp="1607378496417">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.3.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496417" />
+    <state width="2505" height="123" key="GridCell.Tab.3.center" timestamp="1607378496417">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.3.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496417" />
+    <state width="2505" height="123" key="GridCell.Tab.3.left" timestamp="1607378496417">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.3.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496417" />
+    <state width="2505" height="123" key="GridCell.Tab.3.right" timestamp="1607378496417">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2505" height="123" key="GridCell.Tab.3.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607378496417" />
     <state x="1074" y="307" key="RiderGenerateDialog" timestamp="1606712804251">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

@@ -8,6 +8,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
+using UnityEngine.ParticleSystemJobs;
 using Random = UnityEngine.Random;
 
 namespace Ludopathic.Goo.Managers
@@ -71,6 +72,7 @@ namespace Ludopathic.Goo.Managers
       private NativeArray<float2> _blobAccelerations;
       private NativeArray<float2> _blobVelocities;
       private NativeArray<float2> _blobPositions;
+      private NativeArray<Color> _blobColors;
       
       
       //Blob displays.
@@ -80,7 +82,7 @@ namespace Ludopathic.Goo.Managers
       
       private TransformAccessArray _blobTransformAccessArray;
 
-      
+      public ParticleSystem BlobParticleSystemOutput;
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
       private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
@@ -106,7 +108,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleUpdateBlobPositions;
       private JobHandle _jobHandleCopyBlobsToTransforms;
       private JobHandle _jobHandleCopyCursorsToTransforms;
-      
+      private JobHandle _jobHandleCopyBlobsToParticleSystem;
 
 
       
@@ -124,7 +126,7 @@ namespace Ludopathic.Goo.Managers
       private void OnEnable()
       {
          Application.targetFrameRate = 600;
-         int TRANSFORM_ARRAY_SIZE = _ListOfAllBlobs.Count;
+         int TRANSFORM_ARRAY_SIZE = BlobParticleSystemOutput.main.maxParticles;
          
          
          _cursorTeamIDs = new NativeArray<int>(NUM_CURSORS, Allocator.Persistent);
@@ -180,7 +182,7 @@ namespace Ludopathic.Goo.Managers
          _blobPositions = new NativeArray<float2>(TRANSFORM_ARRAY_SIZE, Allocator.Persistent);
          _blobAccelerations = new NativeArray<float2>(TRANSFORM_ARRAY_SIZE, Allocator.Persistent);
          _blobTeamIDs = new NativeArray<int>(TRANSFORM_ARRAY_SIZE, Allocator.Persistent);
-         
+         _blobColors = new NativeArray<Color>(TRANSFORM_ARRAY_SIZE, Allocator.Persistent);
          
          //copy init values into scratch data
          for (int index = 0; index < TRANSFORM_ARRAY_SIZE; index++)
@@ -189,7 +191,10 @@ namespace Ludopathic.Goo.Managers
             _blobVelocities[index] = _ListOfAllBlobs[index].Vel;
             _blobPositions[index] = _ListOfAllBlobs[index].Pos;
             _blobAccelerations[index] = _ListOfAllBlobs[index].Accel;
+            _blobColors[index] = Color.magenta;
          }
+
+      
          
          //output things
          _blobOutputTransforms = new Transform[TRANSFORM_ARRAY_SIZE];
@@ -204,6 +209,8 @@ namespace Ludopathic.Goo.Managers
             blobInstance.GetComponent<MeshRenderer>().sharedMaterial = _blobMaterialInstances[index];
          }
 
+         var main = BlobParticleSystemOutput.main;
+         main.maxParticles = TRANSFORM_ARRAY_SIZE;
          
          //
          // Goo graph
@@ -216,7 +223,7 @@ namespace Ludopathic.Goo.Managers
          _blobTransformAccessArray = new TransformAccessArray(_blobOutputTransforms);
       }
 
-    
+
 
       private void Update()
       {
@@ -371,6 +378,13 @@ namespace Ludopathic.Goo.Managers
             BlobPos = _blobPositions
          };
          
+         var jobDataCopyBlobsToParticleSystem = new JopCopyBlobsToParticleSystem
+         {
+            colors =  _blobColors,
+            positions = _blobPositions,
+            velocities = _blobVelocities
+         };
+         
          var jobDataCopyCursorsToTransforms = new JobCopyBlobsToTransforms
          {
             BlobPos = _cursorPositions
@@ -436,9 +450,12 @@ namespace Ludopathic.Goo.Managers
          //Todo: spit out into a particle effect instead of transforms, which are probably slow as heck
          //but this is still somewhat useful for debug
          _jobHandleCopyBlobsToTransforms = jobDataCopyBlobsToTransforms.Schedule(_blobTransformAccessArray, _jobHandleUpdateBlobPositions);
+         _jobHandleCopyBlobsToParticleSystem = jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, _jobHandleUpdateBlobPositions);
+         
          _jobHandleCopyCursorsToTransforms = jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCopyBlobsToTransforms);
          
          _jobHandleCopyCursorsToTransforms.Complete();
+         _jobHandleCopyBlobsToParticleSystem.Complete();
          
          #endregion // Job Kickoff and Dependancy
          
@@ -453,7 +470,7 @@ namespace Ludopathic.Goo.Managers
       public Gradient EdgeBlobGradient;
       private void LateUpdate()
       {
-
+         UpdateBlobColors(ref _blobColors);
          DrawDebugBlobColors();
          
          //_jobSplat2.Complete();//force this job to hold up the thread until complete
@@ -463,6 +480,61 @@ namespace Ludopathic.Goo.Managers
          _GameFrame++;
       }
 
+      //slow assed. Can jobify
+      private void UpdateBlobColors(ref NativeArray<Color> colors)
+      {
+         float minVal = 0.0f;
+         float maxVal = 1.0f;
+
+         switch (DebugStyle)
+         {
+            case BlobColorDebugStyle.Edges:
+               minVal = 0f;
+               maxVal = MAX_EDGES_PER_BLOB;
+               break;
+            case BlobColorDebugStyle.Velocity:
+               minVal = 0f;
+               maxVal = 10f;
+               break;
+            case BlobColorDebugStyle.Acceleration:
+               minVal = 0f;
+               maxVal = 20f;
+               break;
+            case BlobColorDebugStyle.TeamID:
+               minVal = 0f;
+               maxVal = 5;
+               break;
+            default:
+               throw new ArgumentOutOfRangeException();
+         }
+
+         for (int i = 0; i < colors.Length; i++)
+         {
+            float val = minVal;
+            switch (DebugStyle)
+            {
+               case BlobColorDebugStyle.Edges:
+                  val = _blobEdgeCount[i];
+                  break;
+               case BlobColorDebugStyle.Velocity:
+                  val = math.length(_blobVelocities[i]);
+                  break;
+               case BlobColorDebugStyle.Acceleration:
+                  val = math.length(_blobAccelerations[i]);
+                  break;
+               case BlobColorDebugStyle.TeamID:
+                  val = _blobTeamIDs[i];
+                  break;
+               default:
+                  throw new ArgumentOutOfRangeException();
+            }
+            
+            float frac = Mathf.InverseLerp(minVal, maxVal, val);
+            colors[i] = EdgeBlobGradient.Evaluate( frac );
+         
+         }
+      }
+      
       //PS this shit is SLOW. Could be a job etc. Maybe look into outputting to material blocks? maybe not necessary because there's jobs to output to particle systems
       private void DrawDebugBlobColors()
       {
@@ -541,6 +613,7 @@ namespace Ludopathic.Goo.Managers
          if(_blobPositions .IsCreated) _blobPositions.Dispose();
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
+         if(_blobColors.IsCreated) _blobColors.Dispose();
          
          if(_blobTransformAccessArray.isCreated) _blobTransformAccessArray.Dispose();
 

@@ -1,9 +1,10 @@
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
+using UnityEngine.ParticleSystemJobs;
+using UnityEngine;
 
 namespace Ludopathic.Goo.Jobs
 {
@@ -324,4 +325,31 @@ namespace Ludopathic.Goo.Jobs
             transform.position =  new float3(BlobPos[index].x,0f,BlobPos[index].y) ;
         }
     }
+    
+    [BurstCompile]
+    public struct JopCopyBlobsToParticleSystem : IJobParticleSystemParallelForBatch
+    {
+        [ReadOnly]
+        public NativeArray<float2> positions;
+        [ReadOnly]
+        public NativeArray<float2> velocities;
+        [ReadOnly]
+        public NativeArray<Color> colors;
+ 
+        public void Execute(ParticleSystemJobData jobData, int startIndex, int count)
+        {
+            var startColors = jobData.startColors;
+            var particleVels = jobData.velocities;
+            var particlePos = jobData.positions;
+            
+            int endIndex = startIndex + count;
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                startColors[i] = colors[i];
+                particleVels[i] = new Vector3(velocities[i].x, 0.0f, velocities[i].y);
+                particlePos[i] = new Vector3(positions[i].x, 0.0f, positions[i].y);
+            }
+        }
+    }
+    
 }
