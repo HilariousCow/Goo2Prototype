@@ -1,7 +1,5 @@
 
 using System;
-using System.Collections.Generic;
-using Ludopathic.Goo.Data;
 using Ludopathic.Goo.Jobs;
 using Unity.Collections;
 using Unity.Jobs;
@@ -116,9 +114,7 @@ namespace Ludopathic.Goo.Managers
       {
          Application.targetFrameRate = 600;
 
-         var main = BlobParticleSystemOutput.main;
-         main.maxParticles = NUM_BLOBS;
-         BlobParticleSystemOutput.Emit(NUM_BLOBS);
+     
          
          
          _cursorTeamIDs = new NativeArray<int>(NUM_CURSORS, Allocator.Persistent);
@@ -151,6 +147,17 @@ namespace Ludopathic.Goo.Managers
             
          }
          _cursorTransformAccessArray = new TransformAccessArray(_cursorOutputTransforms);
+
+
+         InitBlobData(NUM_BLOBS, BlobParticleSystemOutput);
+
+      }
+
+      private void InitBlobData(int numBlobs, ParticleSystem blobParticleSystemOutput)
+      {
+         var main = BlobParticleSystemOutput.main;
+         main.maxParticles = NUM_BLOBS;
+         BlobParticleSystemOutput.Emit(NUM_BLOBS);
          //Blob enabling
      
          //create scratch data
@@ -187,59 +194,34 @@ namespace Ludopathic.Goo.Managers
          _blobEdges = new NativeArray<BlobEdge>(NUM_BLOBS * ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          _blobEdgeCount = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          
+         
+         InitJobData();
       }
-
 
 
       private void Update()
       {
          InputMan.PollAllInputs(_GameFrame, 10);
 
-         Vector2 dir = InputMan.ListOfSources[0].GetInputAxis();
-         float pressure = InputMan.ListOfSources[0].GetPressure();
-         //next: do a test job that uses the above inputs to change the velocity
-         
-        // Debug.Log( $" Direction: {dir}, Pressure: {pressure}");
-
-         //TODO Set up simulation data (i.e. going back in time) before processing it.
-         
-         
-         
          UpdateSimulation(Time.deltaTime);
-         
-       
-      
       }
 
-     
-      
-      private void UpdateSimulation(float deltaTime)
+      private void InitJobData()
       {
-         
-         //todo: break this down better. use delta time plus last sim time to figure out a list of game frames to step through, using a starting state.
-         for (int index = 0; index < NUM_CURSORS; index++)
-         {
-            //_cursorTeamIDs[index] = index;
-            _cursorInputDeltas[index] = InputMan.ListOfSources[index].GetInputAxis() * CursorAccel;//todo: needs a game frame to reference
-            //_cursorAccelerations[index] =  float2.zero;
-            //_cursorVelocities[index] = float2.zero;
-            //_cursorPositions[index] = Random.insideUnitCircle;
-            //_cursorRadii[index] = 1.0f;
-         }
-         
-         
-         #region JobDataSetup
+
+         float deltaTime = 0f;
+            #region JobDataSetup
          //
          //Init all job data here. Declare roughly inline. Optional brackets for things that can be parallel
          //
 
          #region ResetBeginningOfSimFrame
-         var jobDataResetBlobAccelerations = new JobResetAcceleration
+         _jobDataResetBlobAccelerations = new JobResetAcceleration
          {
             AccumulatedAcceleration = _blobAccelerations
          };
 
-         var jobDataResetCursorAccelerations = new JobResetAcceleration
+         _jobDataResetCursorAccelerations = new JobResetAcceleration
          {
             AccumulatedAcceleration = _cursorAccelerations
          };
@@ -256,7 +238,7 @@ namespace Ludopathic.Goo.Managers
          
          //build edges with existing positions
 
-         var jobBuildEdges = new JobFindEdges
+         _jobBuildEdges = new JobFindEdges
          {
             Positions = _blobPositions,
             BlobEdges = _blobEdges,
@@ -266,7 +248,7 @@ namespace Ludopathic.Goo.Managers
             
          };
 
-         var jobSpringForces = new JobSpringForce()
+         _jobSpringForces = new JobSpringForce()
          {
             Positions = _blobPositions,
             BlobEdges = _blobEdges,
@@ -278,14 +260,14 @@ namespace Ludopathic.Goo.Managers
          };
          
          //update cursor accel based on inputs
-         var jobDataSetCursorAcceleration = new JobSetAcceleration
+         _jobDataSetCursorAcceleration = new JobSetAcceleration
          {
             ValueToSet = _cursorInputDeltas,
             AccumulatedAcceleration = _cursorAccelerations
          };
          
          //update cursor friction
-         var jobDataApplyCursorFriction = new JobApplyLinearAndConstantFriction
+         _jobDataApplyCursorFriction = new JobApplyLinearAndConstantFriction
          {
             DeltaTime = deltaTime,
             //TODO: maybe I want friction based on acceleration (t*t) since that's the freshest part of this.
@@ -297,7 +279,7 @@ namespace Ludopathic.Goo.Managers
          };
          
          
-         var jobDataUpdateCursorPositions = new JobApplyAcceelrationAndVelocity
+         _jobDataUpdateCursorPositions = new JobApplyAcceelrationAndVelocity
          {
             DeltaTime = deltaTime,
             AccumulatedAcceleration = _cursorAccelerations,
@@ -308,17 +290,17 @@ namespace Ludopathic.Goo.Managers
      
          
          //Now we can update the blobs with the new state of the cursors
-         var jobDataCursorsInfluenceBlobs = new JobCursorsInfluenceBlobs
+         _jobDataCursorsInfluenceBlobs = new JobCursorsInfluenceBlobs
          {
             CursorPositions = _cursorPositions,
             CursorVelocities = _cursorVelocities,
             CursorRadius = _cursorRadii,
             BlobPositions = _blobPositions, 
             BlobAccelAccumulator = _blobAccelerations
-         } ;
+         };
          
       
-         var jobDataApplyFrictionToBlobs = new JobApplyLinearAndConstantFriction
+         _jobDataApplyFrictionToBlobs = new JobApplyLinearAndConstantFriction
          {
             DeltaTime = deltaTime,
             //TODO: maybe I want friction based on acceleration (t*t) since that's the freshest part of this.
@@ -330,7 +312,7 @@ namespace Ludopathic.Goo.Managers
          };
          
          //Blob sim gets updated
-         var jobDataUpdateBlobPositions = new JobApplyAcceelrationAndVelocity
+         _jobDataUpdateBlobPositions = new JobApplyAcceelrationAndVelocity
          {
             DeltaTime = deltaTime,
             AccumulatedAcceleration = _blobAccelerations,
@@ -340,29 +322,61 @@ namespace Ludopathic.Goo.Managers
      
             
          //Output
-         var jobDataCopyBlobsToParticleSystem = new JopCopyBlobsToParticleSystem
+         _jobDataCopyBlobsToParticleSystem = new JopCopyBlobsToParticleSystem
          {
             colors =  _blobColors,
             positions = _blobPositions,
             velocities = _blobVelocities
          };
          
-         var jobDataCopyCursorsToTransforms = new JobCopyBlobsToTransforms
+         _jobDataCopyCursorsToTransforms = new JobCopyBlobsToTransforms
          {
             BlobPos = _cursorPositions
          };
          #endregion //Updates
          
          #endregion // JobDataSetup
+       
+      }
+
+
+      void UpdateJobDeltaTimes(float deltaTime)
+      {
+         //update cursor friction
+         _jobDataApplyCursorFriction.DeltaTime = deltaTime;
+         _jobDataUpdateCursorPositions.DeltaTime = deltaTime;
+         _jobDataApplyFrictionToBlobs.DeltaTime = deltaTime;
+        
+         _jobDataUpdateBlobPositions.DeltaTime = deltaTime;
+      
+       
+      }
+      
+      private void UpdateSimulation(float deltaTime)
+      {
          
+         //todo: break this down better. use delta time plus last sim time to figure out a list of game frames to step through, using a starting state.
+         for (int index = 0; index < NUM_CURSORS; index++)
+         {
+            //_cursorTeamIDs[index] = index;
+            _cursorInputDeltas[index] = InputMan.ListOfSources[index].GetInputAxis() * CursorAccel;//todo: needs a game frame to reference
+            //_cursorAccelerations[index] =  float2.zero;
+            //_cursorVelocities[index] = float2.zero;
+            //_cursorPositions[index] = Random.insideUnitCircle;
+            //_cursorRadii[index] = 1.0f;
+         }
+
+         UpdateJobDeltaTimes( deltaTime );
+         
+        
          #region Job Kickoff and Dependancy
          //
          // Fire off jobs with all the data that has been set up above. Prefer not to in-line job data and job scheduling due to dependancies
          //
          
          #region ResetBeginningOfSimFrame
-         _jobHandleResetBlobAccelerations = jobDataResetBlobAccelerations.Schedule(_blobAccelerations.Length, 64);
-         _jobHandleResetCursorAccelerations = jobDataResetCursorAccelerations.Schedule(_cursorAccelerations.Length, 1);
+         _jobHandleResetBlobAccelerations = _jobDataResetBlobAccelerations.Schedule(_blobAccelerations.Length, 64);
+         _jobHandleResetCursorAccelerations = _jobDataResetCursorAccelerations.Schedule(_cursorAccelerations.Length, 1);
          
          #endregion //ResetBeginningOfSimFrame
          
@@ -372,7 +386,7 @@ namespace Ludopathic.Goo.Managers
          //Construct list of Edges
          
          //Build list of edges per node (limit: closest N per node)
-         _jobHandleBuildEdges = jobBuildEdges.Schedule(_blobPositions.Length, 64);
+         _jobHandleBuildEdges = _jobBuildEdges.Schedule(_blobPositions.Length, 64);
          //_jobHandleBuildEdges = jobBuildEdges.Schedule();
 
          #endregion // Graph Building
@@ -388,22 +402,22 @@ namespace Ludopathic.Goo.Managers
          
       
          //update cursors
-         _jobHandleSetCursorAcceleration = jobDataSetCursorAcceleration.Schedule(_cursorInputDeltas.Length, 1, _jobHandleResetJobs);
+         _jobHandleSetCursorAcceleration = _jobDataSetCursorAcceleration.Schedule(_cursorInputDeltas.Length, 1, _jobHandleResetJobs);
          
-         _jobHandleApplyCursorFriction = jobDataApplyCursorFriction.Schedule(_cursorInputDeltas.Length, 1, _jobHandleSetCursorAcceleration);
+         _jobHandleApplyCursorFriction = _jobDataApplyCursorFriction.Schedule(_cursorInputDeltas.Length, 1, _jobHandleSetCursorAcceleration);
          
-         _jobHandleUpdateCursorPositions = jobDataUpdateCursorPositions.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorFriction);
+         _jobHandleUpdateCursorPositions = _jobDataUpdateCursorPositions.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorFriction);
          
-         _jobHandleCursorsInfluenceBlobs = jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleUpdateCursorPositions);
+         _jobHandleCursorsInfluenceBlobs = _jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleUpdateCursorPositions);
          
          //Cursor Influences blobs once it's ready
          //Blob sim gets updated after cursor influence
          
          //blobs all figure out how much push and pull is coming from neighbouring blobs.
-         _jobHandleSpringForces = jobSpringForces.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         _jobHandleSpringForces = _jobSpringForces.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
          
-         _jobHandleApplyBlobFriction = jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
-         _jobHandleUpdateBlobPositions = jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
+         _jobHandleApplyBlobFriction = _jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
+         _jobHandleUpdateBlobPositions = _jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
          
          #endregion //SimUpdateFrame
       
@@ -411,8 +425,8 @@ namespace Ludopathic.Goo.Managers
          
          //Todo: spit out into a particle effect instead of transforms, which are probably slow as heck
          //but this is still somewhat useful for debug
-         _jobHandleCopyBlobsToParticleSystem = jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, _jobHandleUpdateBlobPositions);
-         _jobHandleCopyCursorsToTransforms = jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCursorsInfluenceBlobs);
+         _jobHandleCopyBlobsToParticleSystem = _jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, _jobHandleUpdateBlobPositions);
+         _jobHandleCopyCursorsToTransforms = _jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCursorsInfluenceBlobs);
          
          
          _jobHandleCopyBlobsToParticleSystem.Complete();
@@ -426,10 +440,22 @@ namespace Ludopathic.Goo.Managers
          //maybe i only need to complete the last, since that's dependant.
       }
 
-      
-
+  
 
       public Gradient EdgeBlobGradient;
+      private JobResetAcceleration _jobDataResetBlobAccelerations;
+      private JobResetAcceleration _jobDataResetCursorAccelerations;
+      private JobFindEdges _jobBuildEdges;
+      private JobSpringForce _jobSpringForces;
+      private JobSetAcceleration _jobDataSetCursorAcceleration;
+      private JobApplyLinearAndConstantFriction _jobDataApplyCursorFriction;
+      private JobApplyAcceelrationAndVelocity _jobDataUpdateCursorPositions;
+      private JobCursorsInfluenceBlobs _jobDataCursorsInfluenceBlobs;
+      private JobApplyLinearAndConstantFriction _jobDataApplyFrictionToBlobs;
+      private JobApplyAcceelrationAndVelocity _jobDataUpdateBlobPositions;
+      private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
+      private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
+
       private void LateUpdate()
       {
          UpdateBlobColors(ref _blobColors);//wants to be a job tbh.
