@@ -6,6 +6,24 @@
     <e p="D:\Goo2Prototype" t="IncludeRecursive">
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
+        <e p="ExampleForRobson" t="Include">
+          <e p="Zone.cs" t="Include" />
+          <e p="ZoneDef.cs" t="Include" />
+        </e>
+        <e p="KNN-main" t="Include">
+          <e p="Demo" t="Include">
+            <e p="KnnApiDemo.cs" t="Include" />
+            <e p="KnnVisualizationDemo.cs" t="Include" />
+            <e p="QueryProbe.cs" t="Include" />
+          </e>
+          <e p="KDBounds.cs" t="Include" />
+          <e p="KDNode.cs" t="Include" />
+          <e p="KNN.asmdef" t="Include" />
+          <e p="KnnContainer.cs" t="Include" />
+          <e p="KnnJobs.cs" t="Include" />
+          <e p="MinMaxHeap.cs" t="Include" />
+          <e p="QueryNode.cs" t="Include" />
+        </e>
         <e p="ProximityConnection.cs" t="Include" />
         <e p="Scripts" t="Include">
           <e p="Ludopathic" t="Include">
@@ -41,6 +59,7 @@
         <e p="SelfCollision.cs" t="Include" />
       </e>
       <e p="Goo2Prototype.sln" t="IncludeFlat" />
+      <e p="KNN.csproj" t="IncludeRecursive" />
       <e p="Ludopathic.Goo.Data.csproj" t="IncludeRecursive" />
       <e p="Ludopathic.Goo.InputSystem.csproj" t="IncludeRecursive" />
       <e p="Ludopathic.Goo.Jobs.csproj" t="IncludeRecursive" />
