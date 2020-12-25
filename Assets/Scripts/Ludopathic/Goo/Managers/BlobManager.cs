@@ -471,16 +471,7 @@ namespace Ludopathic.Goo.Managers
             _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
             
              //now build the edges
-             
-			
-             // Schedule query, dependent on the rebuild
-             // We're only doing a very limited number of points - so allow each query to have it's own job
-             //_graphSetup = _jobDataRangeQuery.ScheduleBatch(_blobPositionsV3.Length, 64, _graphSetup);
-             _graphSetup = _jobDataRangeQuery.ScheduleBatch(_graphSetup);
-             _graphSetup = _jobDataRangeQuery.ScheduleBatch(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
-
-             //Okay. got to set up the Query data now. Ultimately must set the "graph setup" handle so that dependancies can update.
-
+             _graphSetup = _jobDataRangeQuery.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
              #endregion
          }
          else

@@ -5184,9 +5184,10 @@ MonoBehaviour:
   SpringForceConstant: 81.8
   PetriDishRadius: 20
   NumTeams: 2
+  bUseKNNTree: 0
   NUM_BLOBS: 10000
   BlobParticleSystemOutput: {fileID: 491226625}
-  MAX_EDGES_PER_BLOB: 6
+  MAX_EDGES_PER_BLOB: 20
   DebugStyle: 0
   EdgeBlobGradient:
     serializedVersion: 2

@@ -197,7 +197,7 @@ public class KnnVisualizationDemo : MonoBehaviour {
 			
 				// Schedule query, dependent on the rebuild
 				// We're only doing a very limited number of points - so allow each query to have it's own job
-				query.ScheduleBatch(m_queryPositions.Length, 1, rebuildHandle).Complete();
+				query.Schedule(m_queryPositions.Length, 1, rebuildHandle).Complete();
 				break;
 			}
 		}

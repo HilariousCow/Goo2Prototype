@@ -89,7 +89,7 @@ public static class KnnApiDemo  {
 		var batchRange = new QueryRangeBatchJob(knnContainer, queryPositions, 2.0f, rangeResults);
 
 		// And just run immediately now. This will run on multiple threads!
-		batchRange.ScheduleBatch(queryPositions.Length, queryPositions.Length / 32).Complete();
+		batchRange.Schedule(queryPositions.Length, queryPositions.Length / 32).Complete();
 		Profiler.EndSample();
 		
 		// Now the results array contains all the neighbours!
