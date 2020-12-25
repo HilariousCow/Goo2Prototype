@@ -118,23 +118,31 @@ public class KnnVisualizationDemo : MonoBehaviour {
 	}
 	
 	void Update() {
-		if (Mode == QueryMode.KNearest) {
-			// Update particles job to do the colors
-			
-			new ParticleJob {
-				KnnResults = m_results,
-				Points = m_points,
-				K = QueryK,
-				Colors = m_queryColors
-			}.Schedule(m_system);
-		}
-		else {
-			// Update particles job to do the colors
-			new ParticleRangeJob {
-				KnnResults = m_rangeResults,
-				Points = m_points,
-				Colors = m_queryColors
-			}.Schedule(m_system);
+
+		if (m_queryPositions.IsCreated)
+		{
+			if (Mode == QueryMode.KNearest)
+			{
+				// Update particles job to do the colors
+
+				new ParticleJob
+				{
+					KnnResults = m_results,
+					Points = m_points,
+					K = QueryK,
+					Colors = m_queryColors
+				}.Schedule(m_system);
+			}
+			else
+			{
+				// Update particles job to do the colors
+				new ParticleRangeJob
+				{
+					KnnResults = m_rangeResults,
+					Points = m_points,
+					Colors = m_queryColors
+				}.Schedule(m_system);
+			}
 		}
 	}
 

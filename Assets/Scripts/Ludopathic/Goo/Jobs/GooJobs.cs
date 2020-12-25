@@ -1,3 +1,4 @@
+using KNN.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -9,7 +10,7 @@ using UnityEngine;
 namespace Ludopathic.Goo.Jobs
 {
     [BurstCompile]
-    public struct JobResetAcceleration : IJobParallelFor
+    public struct JobZeroFloat2Array : IJobParallelFor
     {
      
         [WriteOnly]
@@ -193,6 +194,78 @@ namespace Ludopathic.Goo.Jobs
         }
     }
 
+    
+     [BurstCompile]
+    public struct JobSpringForceUsingKNNResults : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeArray<RangeQueryResult> BlobNearestNeighbours;//The list we are iterating through in execute
+        
+        [ReadOnly]
+        public NativeArray<float2> Positions;
+        
+        //read and write
+        public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
+
+        /*
+        [ReadOnly]
+        public int MaxEdgesPerBlob;
+        
+        [ReadOnly]
+        public NativeArray<int> BlobEdgeCount;
+        
+        [ReadOnly]
+        [NativeDisableParallelForRestriction] 
+        public NativeArray<BlobEdge> BlobEdges;
+        */
+
+            
+        [ReadOnly]
+        public float MaxEdgeDistanceRaw;
+        
+        [ReadOnly]
+        public float SpringConstant;
+        
+        //for each blob
+        public void Execute(int index)
+        {
+            float2 thisBlobsPosition = Positions[index];
+            RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
+
+
+            int numBlobEdges = oneBlobsNearestNeighbours.Length;
+            //for each nearby blob
+            for (int j = 0; j < numBlobEdges; j++)
+            {
+                int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
+                float2 posB = Positions[indexOfOtherBlob];
+                
+                //simple spring force at first
+                float2 delta = thisBlobsPosition - posB;
+                float deltaDist = math.length(thisBlobsPosition - posB);
+
+                if (deltaDist > 0.0)
+                {
+                    float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
+                    float falloff = (1.0f - frac);
+                    falloff *= falloff;
+                    
+                    frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
+                    float k = frac - 0.5f;
+                    float f = k * SpringConstant;
+
+                    float2 dir = math.normalize(delta);
+                    
+                    //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
+                    
+                    float2 force = -f * dir * falloff;
+                    
+                    AccelerationAccumulator[index] += force;
+                }
+            }
+        }
+    }
+    
     [BurstCompile]
     public struct JobSpringForce : IJobParallelFor
     {
@@ -313,6 +386,40 @@ namespace Ludopathic.Goo.Jobs
             AccumulatedAcceleration[index] = accel;
         }
     }
+    
+    //Hopefully temp because we might be able to get away with a 2d search at some point
+    [BurstCompile]
+    public struct JobCopyBlobInfoToFloat3 : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeArray<int> BlobTeams;
+        public NativeArray<float2> BlobPos;
+        
+        
+        [WriteOnly]
+        public NativeArray<float3> BlobPosFloat3;
+        public void Execute(int index)
+        {
+            BlobPosFloat3[index] = new float3(BlobTeams[index] * 100.0f, //Hack: make the team spread REALLY FAR so that there's almost no chance of them coming back as being within range, since the KNN Queries use sqDistance checks
+                BlobPos[index].x,BlobPos[index].y) ;
+        }
+    }
+
+    //Hopefully temp
+    /*
+    [BurstCompile]
+    public struct JobCopyFloat3ToBlobs : IJobParallelFor
+    {   [ReadOnly]
+        public NativeArray<float3> BlobPosFloat3;
+        [WriteOnly]
+        public NativeArray<float2> BlobPos;
+        public void Execute(int index)
+        {
+            BlobPos[index] = new float2(BlobPosFloat3[index].y,BlobPosFloat3[index].z) ;
+        }
+    }
+    */
+    
     
     //note: would be cool for this to be done outside the sim update, and for it to take time-since-last-game-frame into account
     [BurstCompile]

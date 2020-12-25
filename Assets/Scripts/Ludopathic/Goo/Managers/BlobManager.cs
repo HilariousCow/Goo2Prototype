@@ -7,6 +7,10 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.ParticleSystemJobs;
+
+using KNN;
+using KNN.Jobs;
+
 using Random = UnityEngine.Random;
 
 namespace Ludopathic.Goo.Managers
@@ -39,8 +43,8 @@ namespace Ludopathic.Goo.Managers
 
 
       public int NumTeams = 2;
-    
-      
+
+      public bool bUseKNNTree = false;
       //
       //Job memory
       //
@@ -70,21 +74,63 @@ namespace Ludopathic.Goo.Managers
       private NativeArray<float2> _blobPositions;
       private NativeArray<Color> _blobColors;
       
+      private NativeArray<float3> _blobPositionsV3;
+      
       public ParticleSystem BlobParticleSystemOutput;
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
       private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
       [Range(0, 20)]
       public int MAX_EDGES_PER_BLOB = 12;
+
+      private NativeArray<RangeQueryResult> _blobEdgeResults;
+      
+      [Obsolete]
       private NativeArray<BlobEdge> _blobEdges;
+      [Obsolete]
       private NativeArray<int> _blobEdgeCount;
+      
+      
+      //Job Data
+      private JobZeroFloat2Array _jobDataResetBlobAccelerations;
+      private JobZeroFloat2Array _jobDataResetCursorAccelerations;
+
+      private JobCopyBlobInfoToFloat3 _jobDataCopyBlobInfoToFloat3;
+      
+      
+      private KnnContainer _knnContainer;
+      private KnnRebuildJob _jobBuildKnnTree;
+      private QueryRangeBatchJob _jobDataRangeQuery;
+      
+      private JobFindEdges _jobBuildEdges;
+      private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
+      private JobSpringForce _jobSpringForces;
+      private JobSetAcceleration _jobDataSetCursorAcceleration;
+      private JobApplyLinearAndConstantFriction _jobDataApplyCursorFriction;
+      private JobApplyAcceelrationAndVelocity _jobDataUpdateCursorPositions;
+      private JobCursorsInfluenceBlobs _jobDataCursorsInfluenceBlobs;
+      private JobApplyLinearAndConstantFriction _jobDataApplyFrictionToBlobs;
+      private JobApplyAcceelrationAndVelocity _jobDataUpdateBlobPositions;
+      private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
+      private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
+      
+      
       
       //Job Handles
       private static int _GameFrame = 0;
       private JobHandle _jobHandleResetBlobAccelerations;
       private JobHandle _jobHandleResetCursorAccelerations;
+      
+      [Obsolete("Replacing with KNNQueries")]
       private JobHandle _jobHandleBuildEdges;
       private JobHandle _jobHandleResetJobs;
+      private JobHandle _jobCopy2DArrayTo3DArray;//TODO
+
+
+
+
+      private JobHandle _jobHandleCopyBlobInfoToFloat3;
+      private JobHandle _jobHandleBuildKNNTree;
       
       private JobHandle _jobHandleSpringForces;
       
@@ -113,9 +159,6 @@ namespace Ludopathic.Goo.Managers
       private void OnEnable()
       {
          Application.targetFrameRate = 600;
-
-     
-         
          
          _cursorTeamIDs = new NativeArray<int>(NUM_CURSORS, Allocator.Persistent);
          _cursorInputDeltas = new NativeArray<float2>(NUM_CURSORS, Allocator.Persistent);
@@ -166,6 +209,7 @@ namespace Ludopathic.Goo.Managers
          _blobAccelerations = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobTeamIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          _blobColors = new NativeArray<Color>(NUM_BLOBS, Allocator.Persistent);
+         _blobPositionsV3 = new NativeArray<float3>(NUM_BLOBS, Allocator.Persistent);
          
          //copy init values into scratch data
          for (int index = 0; index < NUM_BLOBS; index++)
@@ -177,6 +221,7 @@ namespace Ludopathic.Goo.Managers
             _blobPositions[index] = new float2(randomPos.x, randomPos.y);
             _blobAccelerations[index] =  float2.zero;
             _blobColors[index] = Color.magenta;
+            _blobPositionsV3[index] = new float3(randomPos.x, randomPos.y, _blobTeamIDs[index]);
          }
 
       
@@ -186,13 +231,11 @@ namespace Ludopathic.Goo.Managers
          main = BlobParticleSystemOutput.main;
          main.maxParticles = NUM_BLOBS;
          
-         //
-         // Goo graph
-         //
-
+     
+         _knnContainer = new KnnContainer(_blobPositionsV3, false, Allocator.Persistent);
          
-         _blobEdges = new NativeArray<BlobEdge>(NUM_BLOBS * ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
-         _blobEdgeCount = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
+         _blobEdges = new NativeArray<BlobEdge>(NUM_BLOBS * ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);//will become obsolete
+         _blobEdgeCount = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);//will become obsolete
          
          
          InitJobData();
@@ -216,18 +259,44 @@ namespace Ludopathic.Goo.Managers
          //
 
          #region ResetBeginningOfSimFrame
-         _jobDataResetBlobAccelerations = new JobResetAcceleration
+         _jobDataResetBlobAccelerations = new JobZeroFloat2Array
          {
             AccumulatedAcceleration = _blobAccelerations
          };
 
-         _jobDataResetCursorAccelerations = new JobResetAcceleration
+         _jobDataResetCursorAccelerations = new JobZeroFloat2Array
          {
             AccumulatedAcceleration = _cursorAccelerations
          };
+
+      
+         _jobDataCopyBlobInfoToFloat3 = new JobCopyBlobInfoToFloat3
+         {
+            BlobPos = _blobPositions,
+            BlobTeams = _blobTeamIDs,
+            BlobPosFloat3 = _blobPositionsV3
+         };
+
+         
+         _jobBuildKnnTree = new KnnRebuildJob(_knnContainer);
+      
+         // Initialize all the range query results
+          _blobEdgeResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
+
+         // Each range query result object needs to declare upfront what the maximum number of points in range is
+         for (int i = 0; i < _blobEdgeResults.Length; ++i) {
+            // Allow for a maximum of 1024 results
+            _blobEdgeResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
+         }
+         
+         _jobDataRangeQuery = new QueryRangeBatchJob(_knnContainer, _blobPositionsV3, MaxSpringDistance, _blobEdgeResults);
+         
+      
+         
          #endregion //ResetBeginningOfSimFrame
          
          
+     
          
          
          #region Updates
@@ -248,6 +317,15 @@ namespace Ludopathic.Goo.Managers
             
          };
 
+         _jobSpringForcesUsingKnn = new JobSpringForceUsingKNNResults()
+         {
+            AccelerationAccumulator = _blobAccelerations,
+            BlobNearestNeighbours = _blobEdgeResults,
+            MaxEdgeDistanceRaw = MaxSpringDistance,
+            Positions = _blobPositions,
+            SpringConstant = SpringForceConstant
+         };
+         
          _jobSpringForces = new JobSpringForce()
          {
             Positions = _blobPositions,
@@ -383,17 +461,53 @@ namespace Ludopathic.Goo.Managers
          //_jobHandleResetJobs.Complete();
 
          #region Graph Building
-         //Construct list of Edges
+         
+         JobHandle _graphSetup;
+         if (bUseKNNTree)
+         {
+            #region KNN Tree Building
+            //We need to copy values of positions over into the knn tree (one day we might be able to rule this out)
+            _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
+            _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
+            
+             //now build the edges
+             
+			
+             // Schedule query, dependent on the rebuild
+             // We're only doing a very limited number of points - so allow each query to have it's own job
+             //_graphSetup = _jobDataRangeQuery.ScheduleBatch(_blobPositionsV3.Length, 64, _graphSetup);
+             _graphSetup = _jobDataRangeQuery.ScheduleBatch(_graphSetup);
+             _graphSetup = _jobDataRangeQuery.ScheduleBatch(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
+
+             //Okay. got to set up the Query data now. Ultimately must set the "graph setup" handle so that dependancies can update.
+
+             #endregion
+         }
+         else
+         {
+            //This was the old way. (0)n^2
+            _graphSetup = _jobHandleBuildEdges = _jobBuildEdges.Schedule(_blobPositions.Length, 64);
+         }
+
+         //now search it
+      
+         
+         //now copy back - oh! We don't need to! positions aren't changed. we just wanted the indices.
+
+         //_jobHandleCopyFloat3ToBlobInfo = _jobDataCopyFloat3ToBlobs.Schedule(_blobPositionsV3.Length, 64); 
+         
          
          //Build list of edges per node (limit: closest N per node)
-         _jobHandleBuildEdges = _jobBuildEdges.Schedule(_blobPositions.Length, 64);
+       
          //_jobHandleBuildEdges = jobBuildEdges.Schedule();
 
          #endregion // Graph Building
          
          
          //todo require above jobs are complete in combo
-         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleBuildEdges);
+         
+         
+         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _graphSetup);
          
          #region SimUpdateFrame
          //
@@ -413,9 +527,20 @@ namespace Ludopathic.Goo.Managers
          //Cursor Influences blobs once it's ready
          //Blob sim gets updated after cursor influence
          
-         //blobs all figure out how much push and pull is coming from neighbouring blobs.
-         _jobHandleSpringForces = _jobSpringForces.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
          
+         
+         //blobs all figure out how much push and pull is coming from neighbouring blobs.
+
+         if (bUseKNNTree)
+         {
+             
+            _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobEdgeResults.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         }
+         else
+         {
+            _jobHandleSpringForces = _jobSpringForces.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+         }
+
          _jobHandleApplyBlobFriction = _jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
          _jobHandleUpdateBlobPositions = _jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
          
@@ -443,18 +568,8 @@ namespace Ludopathic.Goo.Managers
   
 
       public Gradient EdgeBlobGradient;
-      private JobResetAcceleration _jobDataResetBlobAccelerations;
-      private JobResetAcceleration _jobDataResetCursorAccelerations;
-      private JobFindEdges _jobBuildEdges;
-      private JobSpringForce _jobSpringForces;
-      private JobSetAcceleration _jobDataSetCursorAcceleration;
-      private JobApplyLinearAndConstantFriction _jobDataApplyCursorFriction;
-      private JobApplyAcceelrationAndVelocity _jobDataUpdateCursorPositions;
-      private JobCursorsInfluenceBlobs _jobDataCursorsInfluenceBlobs;
-      private JobApplyLinearAndConstantFriction _jobDataApplyFrictionToBlobs;
-      private JobApplyAcceelrationAndVelocity _jobDataUpdateBlobPositions;
-      private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
-      private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
+      
+
 
       private void LateUpdate()
       {
@@ -538,8 +653,13 @@ namespace Ludopathic.Goo.Managers
          if(_cursorVelocities.IsCreated) _cursorVelocities.Dispose();
          if(_cursorPositions.IsCreated) _cursorPositions.Dispose();
          if(_cursorRadii.IsCreated) _cursorRadii.Dispose();
+
+         _knnContainer.Dispose();
+         foreach (var result in _blobEdgeResults) {
+            result.Dispose();
+         }
          
-         
+         if(_blobPositionsV3.IsCreated) _blobPositionsV3.Dispose();
          if(_blobVelocities.IsCreated) _blobVelocities.Dispose();
          if(_blobPositions .IsCreated) _blobPositions.Dispose();
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();

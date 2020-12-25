@@ -106,7 +106,7 @@ namespace KNN {
 		public KnnContainer(NativeArray<float3> points, bool buildNow, Allocator allocator) {
 			int nodeCountEstimate = 4 * (int) math.ceil(points.Length / (float) c_maxPointsPerLeafNode + 1) + 1;
 			Points = points;
-
+			
 			// Both arrays are filled in as we go, so start with uninitialized mem
 			m_nodes = new NativeList<KdNode>(nodeCountEstimate, allocator);
 

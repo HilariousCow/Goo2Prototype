@@ -6,10 +6,6 @@
     <e p="D:\Goo2Prototype" t="IncludeRecursive">
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
-        <e p="ExampleForRobson" t="Include">
-          <e p="Zone.cs" t="Include" />
-          <e p="ZoneDef.cs" t="Include" />
-        </e>
         <e p="KNN-main" t="Include">
           <e p="Demo" t="Include">
             <e p="KnnApiDemo.cs" t="Include" />
