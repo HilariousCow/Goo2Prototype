@@ -96,7 +96,7 @@ namespace Ludopathic.Goo.Managers
       private KnnRebuildJob _jobBuildKnnTree;
       private QueryRangeBatchJob _jobDataQueryNearestNeighboursKNN;
       
-      private JobFindEdges _jobDataQueryNearestNeighbours;
+      private JobFindNearestNeighboursNaive _jobDataQueryNearestNeighbours;
       private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
       private JobSpringForce _jobSpringForces;
       private JobSetAcceleration _jobDataSetCursorAcceleration;
@@ -109,7 +109,9 @@ namespace Ludopathic.Goo.Managers
 
       private JobDebugColorisationInt _jobDataDebugColorisationInt;
       //private JobDebugColorisationFloat _jobDataDebugColorisationFloat;//as yet unused
-      private JobDebugColorisationFloat2Magnitude _jobDataDebugColorisationFloat2Magnitude;
+      private JobDebugColorisationFloat2XY _jobDataDebugColorisationFloat2Magnitude;
+      
+      
       private JobDebugColorisationKNNRangeQuery _jobDataDebugColorisationKNNLength;
       
       
@@ -259,11 +261,11 @@ namespace Ludopathic.Goo.Managers
          
          _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
          
-         _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForceConstant;
-         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForceConstant;
+         _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
+         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          
-         _jobSpringForces.SpringConstant = GooPhysics.SpringForceConstant;
-         _jobSpringForces.MaxEdgeDistanceRaw = GooPhysics.SpringForceConstant;
+         _jobSpringForces.SpringConstant = GooPhysics.SpringForce;
+         _jobSpringForces.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          _jobSpringForces.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
          
          
@@ -331,7 +333,7 @@ namespace Ludopathic.Goo.Managers
          
          //build edges with existing positions
 
-         _jobDataQueryNearestNeighbours = new JobFindEdges
+         _jobDataQueryNearestNeighbours = new JobFindNearestNeighboursNaive
          {
             Positions = _blobPositions,
             BlobEdges = _blobEdges,
@@ -346,7 +348,7 @@ namespace Ludopathic.Goo.Managers
             AccelerationAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
-            SpringConstant = GooPhysics.SpringForceConstant,
+            SpringConstant = GooPhysics.SpringForce,
             Positions = _blobPositions
             
          };
@@ -358,7 +360,7 @@ namespace Ludopathic.Goo.Managers
             BlobEdgeCount = _blobEdgeCount,
             MaxEdgesPerBlob =  GooPhysics.MaxNearestNeighbours,
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
-            SpringConstant = GooPhysics.SpringForceConstant,
+            SpringConstant = GooPhysics.SpringForce,
             AccelerationAccumulator = _blobAccelerations
          };
          
@@ -408,8 +410,8 @@ namespace Ludopathic.Goo.Managers
             DeltaTime = deltaTime,
             //TODO: maybe I want friction based on acceleration (t*t) since that's the freshest part of this.
             //So, constant + linear(t) + accelerative (t*t)
-            LinearFriction = GooPhysics.BlobLinearFriction,
-            ConstantFriction = GooPhysics.BlobConstantFriction,
+            LinearFriction = GooPhysics.LinearFriction,
+            ConstantFriction = GooPhysics.ConstantFriction,
             AccumulatedAcceleration = _blobAccelerations,
             Velocity = _blobVelocities
          };
@@ -450,9 +452,8 @@ namespace Ludopathic.Goo.Managers
             colors =_blobColors,
          }*/
 
-       _jobDataDebugColorisationFloat2Magnitude = new JobDebugColorisationFloat2Magnitude
+       _jobDataDebugColorisationFloat2Magnitude = new JobDebugColorisationFloat2XY
        {
-          minVal = 0,
           maxVal = 10,
           values = _blobVelocities,
           colors = _blobColors
@@ -539,18 +540,6 @@ namespace Ludopathic.Goo.Managers
             //This was the old way. (0)n^2
             _graphSetup = _jobHandleBuildEdges = _jobDataQueryNearestNeighbours.Schedule(_blobPositions.Length, 64);
          }
-
-         //now search it
-      
-         
-         //now copy back - oh! We don't need to! positions aren't changed. we just wanted the indices.
-
-         //_jobHandleCopyFloat3ToBlobInfo = _jobDataCopyFloat3ToBlobs.Schedule(_blobPositionsV3.Length, 64); 
-         
-         
-         //Build list of edges per node (limit: closest N per node)
-       
-         //_jobHandleBuildEdges = jobBuildEdges.Schedule();
 
          #endregion // Graph Building
          
@@ -676,15 +665,11 @@ namespace Ludopathic.Goo.Managers
                _jobDataDebugColorisationKNNLength.values = _blobKNNNearestNeighbourQueryResults;
                break;
             case BlobColorDebugStyle.Velocity:
-               _jobDataDebugColorisationFloat2Magnitude.minVal = 0f;
                _jobDataDebugColorisationFloat2Magnitude.maxVal = 10f;
-               
                _jobDataDebugColorisationFloat2Magnitude.values = _blobVelocities;
                break;
             case BlobColorDebugStyle.Acceleration:
-               _jobDataDebugColorisationFloat2Magnitude.minVal = 0f;
                _jobDataDebugColorisationFloat2Magnitude.maxVal = 200f;
-               
                _jobDataDebugColorisationFloat2Magnitude.values = _blobAccelerations;
                break;
             case BlobColorDebugStyle.TeamID:

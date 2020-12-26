@@ -143,7 +143,7 @@ namespace Ludopathic.Goo.Jobs
     
     [BurstCompile]
     //this could do with more nuance/smaller search space but it basically works.
-    public struct JobFindEdges : IJobParallelFor
+    public struct JobFindNearestNeighboursNaive : IJobParallelFor
     {
         [ReadOnly]
         public NativeArray<float2> Positions;
@@ -169,28 +169,64 @@ namespace Ludopathic.Goo.Jobs
         {
             int numBlobsFound = 0;
             float2 posA = Positions[index];
-            for (int j = 0; j < Positions.Length && numBlobsFound < MaxEdgesPerBlob; j++)
+            NativeList<int> tempList = new NativeList<int>(MaxEdgesPerBlob, Allocator.Temp);
+            NativeList<float> tempListDistanceSq = new NativeList<float>(MaxEdgesPerBlob, Allocator.Temp);
+            
+            for (int j = 0; j < Positions.Length; j++)
             {
-                if (j == index) continue;
+                //if (j == index) continue;
                 
                 float2 posB = Positions[j];
                 float sqDist = math.lengthsq(posA - posB);
 
-                int indexOfEdgeListEntry = index * MaxEdgesPerBlob;//staggered index.
-                
-                if (sqDist < MaxEdgeDistanceSq)
+                if (sqDist < MaxEdgeDistanceSq)//we are inside the acceptable range.
                 {
-                    int newEdgeEntry = indexOfEdgeListEntry + numBlobsFound;//out of index range??
-                    BlobEdges[newEdgeEntry] = new BlobEdge
+                    //find the best distance to put this in
+                    if (tempList.Length >= MaxEdgesPerBlob)//already at capacity
                     {
-                        BlobIndexA = index, 
-                        BlobIndexB = j
-                    };
-                    numBlobsFound++;
-                    if (numBlobsFound == MaxEdgesPerBlob) break;
+                        //see if we're closer than the furthest one, and replace it
+                        
+                        float furthestSqDist = float.MinValue;
+                        int indexOfFurthestNeighbour = -1;
+                        for (int k = 0; k < tempList.Length; k++)
+                        {
+                            float distanceSq = tempListDistanceSq[k];
+                            if (distanceSq > furthestSqDist)
+                            {
+                                furthestSqDist = distanceSq;
+                                indexOfFurthestNeighbour = k;
+                            }
+                        }
+
+                        if ( indexOfFurthestNeighbour>=0 && sqDist < furthestSqDist)
+                        {
+                            tempList[indexOfFurthestNeighbour] = j;
+                            tempListDistanceSq[indexOfFurthestNeighbour] = sqDist;
+                        }
+                    }
+                    else
+                    {
+                        tempList.Add(j);
+                        tempListDistanceSq.Add(sqDist);
+                    }
                 }
             }
-            BlobEdgeCount[index] = numBlobsFound;
+
+            for (int j = 0; j < tempList.Length; j++)
+            {
+                int indexOfEdgeListEntry = index * MaxEdgesPerBlob;//staggered index.
+                int newEdgeEntry = indexOfEdgeListEntry + j;//out of index range??
+                BlobEdges[newEdgeEntry] = new BlobEdge
+                {
+                    BlobIndexA = index, 
+                    BlobIndexB = tempList[j]
+                };
+            }
+         
+            
+            BlobEdgeCount[index] = tempList.Length;
+            tempList.Dispose();//might be redundant?
+            tempListDistanceSq.Dispose();
         }
     }
 
@@ -527,6 +563,7 @@ namespace Ludopathic.Goo.Jobs
         }
     }
     
+    
     [BurstCompile]
     public struct JobDebugColorisationFloat2Magnitude : IJobParallelFor
     {
@@ -547,6 +584,31 @@ namespace Ludopathic.Goo.Jobs
             float length = math.length(values[index]);
             float fraction = (length - minVal) / (maxVal - minVal);
             colors[index] = Color.HSVToRGB(fraction*0.75f, 1f,1f);
+        }
+    }
+    
+    //TODO: vis that shows 2ds as separate axes.
+    [BurstCompile]
+    public struct JobDebugColorisationFloat2XY : IJobParallelFor
+    {
+     
+        [ReadOnly]
+        public float maxVal ;
+        
+        [ReadOnly]
+        public NativeArray<float2> values;
+        
+        [WriteOnly]
+        public NativeArray<Color> colors;
+ 
+        public void Execute(int index)
+        {
+           
+            float xFraction = (values[index].x - maxVal) / (maxVal + maxVal);
+            float yFraction = (values[index].x - maxVal) / (maxVal + maxVal);
+            
+            Color col = new Color(xFraction, yFraction, 0.0f, 1.0f);
+            colors[index] = col;
         }
     }
     

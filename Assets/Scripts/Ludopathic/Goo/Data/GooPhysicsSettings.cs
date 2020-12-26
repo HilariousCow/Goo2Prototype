@@ -12,9 +12,9 @@ public class GooPhysicsSettings : ScriptableObject
     
     [Space]
     [Range(0.0f, 1.0f)]//stubborness
-    public float BlobLinearFriction;
+    public float LinearFriction;
     [Range(0.0f, 50.0f)]//stiffness
-    public float BlobConstantFriction;
+    public float ConstantFriction;
     [Range(0.0f, 100.0f)]
-    public float SpringForceConstant = 15f;
+    public float SpringForce = 15f;
 }

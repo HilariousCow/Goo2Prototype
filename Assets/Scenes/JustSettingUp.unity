@@ -5174,6 +5174,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   InputMan: {fileID: 645011140}
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
+  BlobParticleSystemOutput: {fileID: 491226625}
   CursorRadius: 7.58
   CursorAccel: 201.66
   CursorLinearFriction: 0.9
@@ -5183,8 +5184,6 @@ MonoBehaviour:
   NumTeams: 1
   bUseKNNTree: 1
   NUM_BLOBS: 10000
-  BlobParticleSystemOutput: {fileID: 491226625}
-  MAX_EDGES_PER_BLOB: 20
   DebugStyle: 0
   EdgeBlobGradient:
     serializedVersion: 2
