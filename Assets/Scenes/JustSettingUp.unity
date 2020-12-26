@@ -5178,13 +5178,10 @@ MonoBehaviour:
   CursorAccel: 201.66
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
-  BlobLinearFriction: 0.455
-  BlobConstantFriction: 6.5
-  MaxSpringDistance: 0.72
-  SpringForceConstant: 81.8
+  GooPhysics: {fileID: 11400000, guid: fd2f8aa2eda7f324f8c9231ee550d9c0, type: 2}
   PetriDishRadius: 20
   NumTeams: 1
-  bUseKNNTree: 0
+  bUseKNNTree: 1
   NUM_BLOBS: 10000
   BlobParticleSystemOutput: {fileID: 491226625}
   MAX_EDGES_PER_BLOB: 20

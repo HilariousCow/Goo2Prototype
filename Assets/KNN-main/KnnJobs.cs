@@ -121,10 +121,10 @@ namespace KNN.Jobs {
 
 	[BurstCompile(CompileSynchronously = true)]
 	public struct QueryRangeBatchJob : IJobParallelFor {
-		[ReadOnly] KnnContainer m_container;
-		[ReadOnly] NativeSlice<float3> m_queryPositions;
+		[ReadOnly] public KnnContainer m_container;
+		[ReadOnly] public NativeSlice<float3> m_queryPositions;
 
-		float m_range;
+		public float m_range;
 
 		public NativeArray<RangeQueryResult> Results;
 

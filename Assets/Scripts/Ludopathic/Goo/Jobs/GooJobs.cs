@@ -234,8 +234,10 @@ namespace Ludopathic.Goo.Jobs
 
 
             int numBlobEdges = oneBlobsNearestNeighbours.Length;
+            
+            if(numBlobEdges <= 1) return;//we probably found ourself!
             //for each nearby blob
-            for (int j = 0; j < numBlobEdges; j++)
+            for (int j = 1; j < numBlobEdges; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
                 float2 posB = Positions[indexOfOtherBlob];

@@ -29,6 +29,7 @@
                 <e p="GooCursorData.cs" t="Include" />
                 <e p="GooData.cs" t="Include" />
                 <e p="GooGroupData.cs" t="Include" />
+                <e p="GooPhysicsSettings.cs" t="Include" />
                 <e p="IMovablePoint.cs" t="Include" />
                 <e p="ITeamID.cs" t="Include" />
                 <e p="Ludopathic.Goo.Data.asmdef" t="Include" />
