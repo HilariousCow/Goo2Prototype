@@ -271,8 +271,11 @@ namespace Ludopathic.Goo.Managers
          _jobDataSpringForcesNaive.SpringConstant = GooPhysics.SpringForce;
          _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          _jobDataSpringForcesNaive.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
-         
-         
+
+         _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
+         _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
+         _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
+      
          UpdateSimulation(Time.deltaTime);
       }
 
@@ -374,8 +377,10 @@ namespace Ludopathic.Goo.Managers
             BlobVelocities = _blobVelocities,
             BlobAccelAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
+            
             InfluenceRadius = GooPhysics.MaxSpringDistance,
-            InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower
+            InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower,
+            InfluenceModulator =  GooPhysics.FluidInfluenceModulator
          };
             
          //update cursor accel based on inputs
@@ -715,24 +720,19 @@ namespace Ludopathic.Goo.Managers
          if(_cursorVelocities.IsCreated) _cursorVelocities.Dispose();
          if(_cursorPositions.IsCreated) _cursorPositions.Dispose();
          if(_cursorRadii.IsCreated) _cursorRadii.Dispose();
-
-         _knnContainer.Dispose();
-         foreach (var result in _blobKNNNearestNeighbourQueryResults) {
-            result.Dispose();
-         }
-         
          if(_blobPositionsV3.IsCreated) _blobPositionsV3.Dispose();
          if(_blobVelocities.IsCreated) _blobVelocities.Dispose();
          if(_blobPositions .IsCreated) _blobPositions.Dispose();
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
          if(_blobColors.IsCreated) _blobColors.Dispose();
+         if(_blobEdges.IsCreated) _blobEdges.Dispose();
+         if(_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
          
-
-
-         if (_blobEdges.IsCreated) _blobEdges.Dispose();
-         if (_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
-
+         _knnContainer.Dispose();
+         foreach (var result in _blobKNNNearestNeighbourQueryResults) {
+            result.Dispose();
+         }
      
       }
    }

@@ -101,6 +101,8 @@ namespace Ludopathic.Goo.Jobs
         public NativeArray<float2> BlobAccelAccumulator;
 
         [ReadOnly]
+        public float InfluenceModulator;
+        [ReadOnly]
         public float InfluenceRadius;
         [ReadOnly]
         public float InfluenceFalloff;
@@ -117,15 +119,18 @@ namespace Ludopathic.Goo.Jobs
             //note this is n vs n.
             for (int jIndex = 0; jIndex < oneBlobsNearestNeighbours.Length; jIndex++)
             {
-                //todo: see if we can use sq distance for falloff. I doubt it but maybe?
+                
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[jIndex];
+                
+                if(index == indexOfOtherBlob) continue;//don't self influence
+                
                 float2 otherPos = BlobPositions[indexOfOtherBlob];
                 float2 curVel = BlobVelocities[indexOfOtherBlob];
-                float dist = math.distance(blobPos, otherPos);
+                float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
                 float distFrac = dist / InfluenceRadius;
                 distFrac = math.pow(distFrac, InfluenceFalloff);
                 float invDelta = math.clamp( 1.0f - distFrac, 0.0f, 1.0f);//closer means more force transferred.
-                blobAccel += invDelta * curVel;//todo add some kinda proportion control thing.
+                blobAccel += InfluenceModulator * invDelta * curVel;//todo add some kinda proportion control thing.
              
             }
 

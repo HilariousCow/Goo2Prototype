@@ -20,4 +20,6 @@ public class GooPhysicsSettings : ScriptableObject
 
     [Range(0.01f, 40.0f)]
     public float FluidInfluenceFalloffPower = 2.0f;
+    [Range(0.00f, 1.0f)]
+    public float FluidInfluenceModulator = 0.5f;
 }
