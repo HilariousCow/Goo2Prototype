@@ -76,7 +76,7 @@ namespace Ludopathic.Goo.Managers
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
       private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
-      private NativeArray<RangeQueryResult> _blobEdgeResults;
+      private NativeArray<RangeQueryResult> _blobKNNNearestNeighbourQueryResults;
       
       [Obsolete]
       private NativeArray<BlobEdge> _blobEdges;
@@ -110,7 +110,8 @@ namespace Ludopathic.Goo.Managers
       private JobDebugColorisationInt _jobDataDebugColorisationInt;
       //private JobDebugColorisationFloat _jobDataDebugColorisationFloat;//as yet unused
       private JobDebugColorisationFloat2Magnitude _jobDataDebugColorisationFloat2Magnitude;
-         
+      private JobDebugColorisationKNNRangeQuery _jobDataDebugColorisationKNNLength;
+      
       
       private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
       private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
@@ -301,18 +302,18 @@ namespace Ludopathic.Goo.Managers
          _jobBuildKnnTree = new KnnRebuildJob(_knnContainer);
       
          // Initialize all the range query results
-          _blobEdgeResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
+          _blobKNNNearestNeighbourQueryResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
 
          // Each range query result object needs to declare upfront what the maximum number of points in range is
-         for (int i = 0; i < _blobEdgeResults.Length; ++i) {
+         for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i) {
             // Allow for a maximum of 1024 results
-            _blobEdgeResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
+            _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          }
          
          _jobDataQueryNearestNeighboursKNN = new QueryRangeBatchJob{ m_container = _knnContainer,
             m_queryPositions = _blobPositionsV3, 
             m_range = GooPhysics.MaxSpringDistance,
-            Results = _blobEdgeResults};
+            Results = _blobKNNNearestNeighbourQueryResults};
          
       
          
@@ -343,7 +344,7 @@ namespace Ludopathic.Goo.Managers
          _jobSpringForcesUsingKnn = new JobSpringForceUsingKNNResults()
          {
             AccelerationAccumulator = _blobAccelerations,
-            BlobNearestNeighbours = _blobEdgeResults,
+            BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
             SpringConstant = GooPhysics.SpringForceConstant,
             Positions = _blobPositions
@@ -433,6 +434,14 @@ namespace Ludopathic.Goo.Managers
             colors = _blobColors,
          };
       
+         _jobDataDebugColorisationKNNLength = new JobDebugColorisationKNNRangeQuery()
+         {
+            minVal = 0,
+            maxVal = 10,
+            values = _blobKNNNearestNeighbourQueryResults,
+            colors = _blobColors,
+         };
+         
        /*  _jobDataDebugColorisationFloat = new JobDebugColorisationFloat
          {
             minVal = 0,
@@ -576,7 +585,7 @@ namespace Ludopathic.Goo.Managers
          if (bUseKNNTree)
          {
              
-            _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobEdgeResults.Length, 64, _jobHandleCursorsInfluenceBlobs);
+            _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleCursorsInfluenceBlobs);
          }
          else
          {
@@ -598,7 +607,8 @@ namespace Ludopathic.Goo.Managers
          switch (DebugStyle)
          {
             case BlobColorDebugStyle.Edges:
-               jobHandleDebugColorization =
+               jobHandleDebugColorization = bUseKNNTree ? 
+                  _jobDataDebugColorisationKNNLength.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleUpdateBlobPositions) :
                   _jobDataDebugColorisationInt.Schedule(_blobEdgeCount.Length, 64, _jobHandleUpdateBlobPositions);
                break;
             case BlobColorDebugStyle.Velocity:
@@ -657,27 +667,29 @@ namespace Ludopathic.Goo.Managers
          switch (DebugStyle)
          {
             case BlobColorDebugStyle.Edges:
-               minVal = 0f;
-               maxVal = GooPhysics.MaxNearestNeighbours;
-               
+               _jobDataDebugColorisationInt.minVal = 0;
+               _jobDataDebugColorisationInt.maxVal = GooPhysics.MaxNearestNeighbours;
                _jobDataDebugColorisationInt.values = _blobEdgeCount;//based on whether knn trees are used or not. easy way to get at query results length for knn?
                
+               _jobDataDebugColorisationKNNLength.minVal = 0;
+               _jobDataDebugColorisationKNNLength.maxVal = GooPhysics.MaxNearestNeighbours;
+               _jobDataDebugColorisationKNNLength.values = _blobKNNNearestNeighbourQueryResults;
                break;
             case BlobColorDebugStyle.Velocity:
-               minVal = 0f;
-               maxVal = 10f;
+               _jobDataDebugColorisationFloat2Magnitude.minVal = 0f;
+               _jobDataDebugColorisationFloat2Magnitude.maxVal = 10f;
                
                _jobDataDebugColorisationFloat2Magnitude.values = _blobVelocities;
                break;
             case BlobColorDebugStyle.Acceleration:
-               minVal = 0f;
-               maxVal = 20f;
+               _jobDataDebugColorisationFloat2Magnitude.minVal = 0f;
+               _jobDataDebugColorisationFloat2Magnitude.maxVal = 200f;
                
                _jobDataDebugColorisationFloat2Magnitude.values = _blobAccelerations;
                break;
             case BlobColorDebugStyle.TeamID:
-               minVal = 0f;
-               maxVal = 5;
+               _jobDataDebugColorisationInt.minVal = 0;
+               _jobDataDebugColorisationInt.maxVal = 5;
                _jobDataDebugColorisationInt.values = _blobTeamIDs;
                break;
             default:
@@ -704,7 +716,7 @@ namespace Ludopathic.Goo.Managers
          if(_cursorRadii.IsCreated) _cursorRadii.Dispose();
 
          _knnContainer.Dispose();
-         foreach (var result in _blobEdgeResults) {
+         foreach (var result in _blobKNNNearestNeighbourQueryResults) {
             result.Dispose();
          }
          
