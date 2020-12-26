@@ -5183,7 +5183,7 @@ MonoBehaviour:
   MaxSpringDistance: 0.72
   SpringForceConstant: 81.8
   PetriDishRadius: 20
-  NumTeams: 2
+  NumTeams: 1
   bUseKNNTree: 0
   NUM_BLOBS: 10000
   BlobParticleSystemOutput: {fileID: 491226625}

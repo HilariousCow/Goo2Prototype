@@ -607,7 +607,7 @@ namespace Ludopathic.Goo.Managers
             switch (DebugStyle)
             {
                case BlobColorDebugStyle.Edges:
-                  val = _blobEdgeCount[i];
+                  val = bUseKNNTree ? _blobEdgeResults[i].Length : _blobEdgeCount[i];
                   break;
                case BlobColorDebugStyle.Velocity:
                   val = math.length(_blobVelocities[i]);
