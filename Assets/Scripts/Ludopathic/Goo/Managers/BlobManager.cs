@@ -19,7 +19,8 @@ namespace Ludopathic.Goo.Managers
    {
       public InputManager InputMan;
       public GameObject BlobPrefab;
-
+      public ParticleSystem BlobParticleSystemOutput;
+      
       //Gameplay properties
       public float CursorRadius = 10.0f;
       public float CursorAccel = 5.0f;
@@ -28,16 +29,21 @@ namespace Ludopathic.Goo.Managers
 
       public GooPhysicsSettings GooPhysics;
     
-      
+      //Match settings.
+      //Move to an SO
       [Space]
       public float PetriDishRadius = 2f;
-
-
       public int NumTeams = 2;
-
+      
+      //Eventually make obsolute (yes we want the knn tree!)
       public bool bUseKNNTree = false;
+      
+      
+      
+      
+      
       //
-      //Job memory
+      // Persistent Entity Memroy
       //
       
       //Cursor properties
@@ -54,7 +60,6 @@ namespace Ludopathic.Goo.Managers
       private Transform[] _cursorOutputTransforms;
       private TransformAccessArray _cursorTransformAccessArray;
       
-    
       public int NUM_BLOBS = 1000;
       
       //Blob Properties.
@@ -67,12 +72,10 @@ namespace Ludopathic.Goo.Managers
       
       private NativeArray<float3> _blobPositionsV3;
       
-      public ParticleSystem BlobParticleSystemOutput;
+      
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
       private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
-    
-
       private NativeArray<RangeQueryResult> _blobEdgeResults;
       
       [Obsolete]
@@ -80,8 +83,9 @@ namespace Ludopathic.Goo.Managers
       [Obsolete]
       private NativeArray<int> _blobEdgeCount;
       
-      
+      //
       //Job Data
+      //
       private JobZeroFloat2Array _jobDataResetBlobAccelerations;
       private JobZeroFloat2Array _jobDataResetCursorAccelerations;
 
@@ -101,12 +105,21 @@ namespace Ludopathic.Goo.Managers
       private JobCursorsInfluenceBlobs _jobDataCursorsInfluenceBlobs;
       private JobApplyLinearAndConstantFriction _jobDataApplyFrictionToBlobs;
       private JobApplyAcceelrationAndVelocity _jobDataUpdateBlobPositions;
+
+
+      private JobDebugColorisationInt _jobDataDebugColorisationInt;
+      //private JobDebugColorisationFloat _jobDataDebugColorisationFloat;//as yet unused
+      private JobDebugColorisationFloat2Magnitude _jobDataDebugColorisationFloat2Magnitude;
+         
+      
       private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
       private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
       
       
+      //
+      //Job Handles (probably don't need to be members)
+      //
       
-      //Job Handles
       private static int _GameFrame = 0;
       private JobHandle _jobHandleResetBlobAccelerations;
       private JobHandle _jobHandleResetCursorAccelerations;
@@ -147,8 +160,6 @@ namespace Ludopathic.Goo.Managers
       
       //Debug drawing.
       public BlobColorDebugStyle DebugStyle;
-      private BlobColorDebugStyle _lastDebugStyle;
-      private int _lastMaxNumNeighnours;
       
       private void OnEnable()
       {
@@ -413,6 +424,33 @@ namespace Ludopathic.Goo.Managers
      
             
          //Output
+
+         _jobDataDebugColorisationInt = new JobDebugColorisationInt()
+         {
+            minVal = 0,
+            maxVal = 10,
+            values = _blobEdgeCount,
+            colors = _blobColors,
+         };
+      
+       /*  _jobDataDebugColorisationFloat = new JobDebugColorisationFloat
+         {
+            minVal = 0,
+            maxVal = 10,
+            values = _blobEdgeCount,
+            colors =_blobColors,
+         }*/
+
+       _jobDataDebugColorisationFloat2Magnitude = new JobDebugColorisationFloat2Magnitude
+       {
+          minVal = 0,
+          maxVal = 10,
+          values = _blobVelocities,
+          colors = _blobColors
+       };
+            
+      
+            
          _jobDataCopyBlobsToParticleSystem = new JopCopyBlobsToParticleSystem
          {
             colors =  _blobColors,
@@ -554,7 +592,31 @@ namespace Ludopathic.Goo.Managers
          
          //Todo: spit out into a particle effect instead of transforms, which are probably slow as heck
          //but this is still somewhat useful for debug
-         _jobHandleCopyBlobsToParticleSystem = _jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, _jobHandleUpdateBlobPositions);
+
+         JobHandle jobHandleDebugColorization;
+
+         switch (DebugStyle)
+         {
+            case BlobColorDebugStyle.Edges:
+               jobHandleDebugColorization =
+                  _jobDataDebugColorisationInt.Schedule(_blobEdgeCount.Length, 64, _jobHandleUpdateBlobPositions);
+               break;
+            case BlobColorDebugStyle.Velocity:
+               jobHandleDebugColorization =
+                  _jobDataDebugColorisationFloat2Magnitude.Schedule(_blobVelocities.Length, 64, _jobHandleUpdateBlobPositions);
+               break;
+            case BlobColorDebugStyle.Acceleration:
+               jobHandleDebugColorization =
+                  _jobDataDebugColorisationFloat2Magnitude.Schedule(_blobAccelerations.Length, 64, _jobHandleUpdateBlobPositions);
+               break;
+            case BlobColorDebugStyle.TeamID:
+               jobHandleDebugColorization =
+                  _jobDataDebugColorisationInt.Schedule(_blobTeamIDs.Length, 64, _jobHandleUpdateBlobPositions);
+               break;
+            default:
+               throw new ArgumentOutOfRangeException();
+         }
+         _jobHandleCopyBlobsToParticleSystem = _jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, jobHandleDebugColorization);
          _jobHandleCopyCursorsToTransforms = _jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCursorsInfluenceBlobs);
          
          
@@ -589,63 +651,40 @@ namespace Ludopathic.Goo.Managers
       //slow assed. Can jobify
       private void UpdateBlobColors(ref NativeArray<Color> colors)
       {
-         if (_lastDebugStyle != DebugStyle || _GameFrame == 0 || GooPhysics.MaxNearestNeighbours != _lastMaxNumNeighnours)
+         float minVal = 0.0f;
+         float maxVal = 1.0f;
+
+         switch (DebugStyle)
          {
-            float minVal = 0.0f;
-            float maxVal = 1.0f;
-
-            switch (DebugStyle)
-            {
-               case BlobColorDebugStyle.Edges:
-                  minVal = 0f;
-                  maxVal = GooPhysics.MaxNearestNeighbours;
-                  break;
-               case BlobColorDebugStyle.Velocity:
-                  minVal = 0f;
-                  maxVal = 10f;
-                  break;
-               case BlobColorDebugStyle.Acceleration:
-                  minVal = 0f;
-                  maxVal = 20f;
-                  break;
-               case BlobColorDebugStyle.TeamID:
-                  minVal = 0f;
-                  maxVal = 5;
-                  break;
-               default:
-                  throw new ArgumentOutOfRangeException();
-            }
-
-            for (int i = 0; i < colors.Length; i++)
-            {
-               float val = minVal;
-               switch (DebugStyle)
-               {
-                  case BlobColorDebugStyle.Edges:
-                     val = bUseKNNTree ? _blobEdgeResults[i].Length : _blobEdgeCount[i];
-                     break;
-                  case BlobColorDebugStyle.Velocity:
-                     val = math.length(_blobVelocities[i]);
-                     break;
-                  case BlobColorDebugStyle.Acceleration:
-                     val = math.length(_blobAccelerations[i]);
-                     break;
-                  case BlobColorDebugStyle.TeamID:
-                     val = _blobTeamIDs[i];
-                     break;
-                  default:
-                     throw new ArgumentOutOfRangeException();
-               }
-
-               float frac = Mathf.InverseLerp(minVal, maxVal, val);
-               colors[i] = EdgeBlobGradient.Evaluate(frac);
-
-            }
-
-            _lastMaxNumNeighnours = GooPhysics.MaxNearestNeighbours;
-            _lastDebugStyle = DebugStyle;
+            case BlobColorDebugStyle.Edges:
+               minVal = 0f;
+               maxVal = GooPhysics.MaxNearestNeighbours;
+               
+               _jobDataDebugColorisationInt.values = _blobEdgeCount;//based on whether knn trees are used or not. easy way to get at query results length for knn?
+               
+               break;
+            case BlobColorDebugStyle.Velocity:
+               minVal = 0f;
+               maxVal = 10f;
+               
+               _jobDataDebugColorisationFloat2Magnitude.values = _blobVelocities;
+               break;
+            case BlobColorDebugStyle.Acceleration:
+               minVal = 0f;
+               maxVal = 20f;
+               
+               _jobDataDebugColorisationFloat2Magnitude.values = _blobAccelerations;
+               break;
+            case BlobColorDebugStyle.TeamID:
+               minVal = 0f;
+               maxVal = 5;
+               _jobDataDebugColorisationInt.values = _blobTeamIDs;
+               break;
+            default:
+               throw new ArgumentOutOfRangeException();
          }
       }
+   
     
       private void OnDisable()
       {

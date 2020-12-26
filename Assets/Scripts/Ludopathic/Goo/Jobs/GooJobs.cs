@@ -461,4 +461,71 @@ namespace Ludopathic.Goo.Jobs
         }
     }
     
+    [BurstCompile]
+    public struct JobDebugColorisationInt : IJobParallelFor
+    {
+        [ReadOnly]
+        public int minVal ;
+        
+        [ReadOnly]
+        public int maxVal ;
+        
+        [ReadOnly]
+        public NativeArray<int> values;
+        
+        [WriteOnly]
+        public NativeArray<Color> colors;
+ 
+        public void Execute(int index)
+        {
+            float fraction = (values[index] - minVal) / (float)(maxVal - minVal);
+            colors[index] = Color.HSVToRGB(fraction*0.75f, 0.5f,1f);
+        }
+    }
+    
+    [BurstCompile]
+    public struct JobDebugColorisationFloat : IJobParallelFor
+    {
+        [ReadOnly]
+        public float minVal ;
+        
+        [ReadOnly]
+        public float maxVal ;
+        
+        [ReadOnly]
+        public NativeArray<float> values;
+        
+        [WriteOnly]
+        public NativeArray<Color> colors;
+ 
+        public void Execute(int index)
+        {
+            float fraction = (values[index] - minVal) / (maxVal - minVal);
+            colors[index] = Color.HSVToRGB(fraction*0.75f, 0.5f,1f);
+        }
+    }
+    
+    [BurstCompile]
+    public struct JobDebugColorisationFloat2Magnitude : IJobParallelFor
+    {
+        [ReadOnly]
+        public float minVal ;
+        
+        [ReadOnly]
+        public float maxVal ;
+        
+        [ReadOnly]
+        public NativeArray<float2> values;
+        
+        [WriteOnly]
+        public NativeArray<Color> colors;
+ 
+        public void Execute(int index)
+        {
+            float length = math.length(values[index]);
+            float fraction = (length - minVal) / (maxVal - minVal);
+            colors[index] = Color.HSVToRGB(fraction*0.75f, 0.5f,1f);
+        }
+    }
+    
 }
