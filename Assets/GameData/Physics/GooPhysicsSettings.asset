@@ -15,5 +15,6 @@ MonoBehaviour:
   MaxSpringDistance: 0.8
   MaxNearestNeighbours: 20
   LinearFriction: 0.27
-  ConstantFriction: 3.6
+  ConstantFriction: 19.6
   SpringForce: 15
+  FluidInfluenceFalloffPower: 2

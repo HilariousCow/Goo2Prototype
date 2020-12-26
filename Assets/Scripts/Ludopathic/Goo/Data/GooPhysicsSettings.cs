@@ -17,4 +17,7 @@ public class GooPhysicsSettings : ScriptableObject
     public float ConstantFriction;
     [Range(0.0f, 100.0f)]
     public float SpringForce = 15f;
+
+    [Range(0.01f, 40.0f)]
+    public float FluidInfluenceFalloffPower = 2.0f;
 }

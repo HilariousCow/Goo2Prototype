@@ -98,7 +98,10 @@ namespace Ludopathic.Goo.Managers
       
       private JobFindNearestNeighboursNaive _jobDataQueryNearestNeighbours;
       private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
-      private JobSpringForce _jobSpringForces;
+      private JobSpringForce _jobDataSpringForcesNaive;
+
+      private JobVelocityInfluenceFalloff _jobDataFluidInfluence;
+      
       private JobSetAcceleration _jobDataSetCursorAcceleration;
       private JobApplyLinearAndConstantFriction _jobDataApplyCursorFriction;
       private JobApplyAcceelrationAndVelocity _jobDataUpdateCursorPositions;
@@ -145,6 +148,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleUpdateCursorPositions;
       private JobHandle _jobHandleCursorsInfluenceBlobs;
       private JobHandle _jobHandleApplyBlobFriction;
+      private JobHandle _jobHandleFluidInfluences;
       private JobHandle _jobHandleUpdateBlobPositions;
       private JobHandle _jobHandleCopyCursorsToTransforms;
       private JobHandle _jobHandleCopyBlobsToParticleSystem;
@@ -264,9 +268,9 @@ namespace Ludopathic.Goo.Managers
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          
-         _jobSpringForces.SpringConstant = GooPhysics.SpringForce;
-         _jobSpringForces.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
-         _jobSpringForces.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
+         _jobDataSpringForcesNaive.SpringConstant = GooPhysics.SpringForce;
+         _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
+         _jobDataSpringForcesNaive.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
          
          
          UpdateSimulation(Time.deltaTime);
@@ -353,7 +357,7 @@ namespace Ludopathic.Goo.Managers
             
          };
          
-         _jobSpringForces = new JobSpringForce()
+         _jobDataSpringForcesNaive = new JobSpringForce()
          {
             Positions = _blobPositions,
             BlobEdges = _blobEdges,
@@ -363,7 +367,17 @@ namespace Ludopathic.Goo.Managers
             SpringConstant = GooPhysics.SpringForce,
             AccelerationAccumulator = _blobAccelerations
          };
-         
+
+         _jobDataFluidInfluence = new JobVelocityInfluenceFalloff
+         {
+            BlobPositions = _blobPositions,
+            BlobVelocities = _blobVelocities,
+            BlobAccelAccumulator = _blobAccelerations,
+            BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
+            InfluenceRadius = GooPhysics.MaxSpringDistance,
+            InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower
+         };
+            
          //update cursor accel based on inputs
          _jobDataSetCursorAcceleration = new JobSetAcceleration
          {
@@ -578,11 +592,13 @@ namespace Ludopathic.Goo.Managers
          }
          else
          {
-            _jobHandleSpringForces = _jobSpringForces.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+            _jobHandleSpringForces = _jobDataSpringForcesNaive.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
          }
 
          _jobHandleApplyBlobFriction = _jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
-         _jobHandleUpdateBlobPositions = _jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
+         _jobHandleFluidInfluences =  _jobDataFluidInfluence.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
+
+         _jobHandleUpdateBlobPositions = _jobDataUpdateBlobPositions.Schedule(_blobAccelerations.Length, 64, _jobHandleFluidInfluences);
          
          #endregion //SimUpdateFrame
       

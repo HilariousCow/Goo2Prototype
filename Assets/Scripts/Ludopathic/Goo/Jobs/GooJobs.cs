@@ -87,6 +87,53 @@ namespace Ludopathic.Goo.Jobs
     }
     
     [BurstCompile]
+    public struct JobVelocityInfluenceFalloff : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeArray<float2> BlobPositions;
+        [ReadOnly]
+        public NativeArray<float2> BlobVelocities;
+        
+        [ReadOnly]
+        public NativeArray<RangeQueryResult> BlobNearestNeighbours;//The list we are iterating through in execute
+        
+       
+        public NativeArray<float2> BlobAccelAccumulator;
+
+        [ReadOnly]
+        public float InfluenceRadius;
+        [ReadOnly]
+        public float InfluenceFalloff;
+        
+        //For each blob
+        //Add force based on a nearby blob's velocity.
+        //Also just the blobs close enough for blob influence
+        public void Execute(int index)
+        {
+            float2 blobPos = BlobPositions[index];
+            float2 blobAccel = BlobAccelAccumulator[index];
+            
+            RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
+            //note this is n vs n.
+            for (int jIndex = 0; jIndex < oneBlobsNearestNeighbours.Length; jIndex++)
+            {
+                //todo: see if we can use sq distance for falloff. I doubt it but maybe?
+                int indexOfOtherBlob = oneBlobsNearestNeighbours[jIndex];
+                float2 otherPos = BlobPositions[indexOfOtherBlob];
+                float2 curVel = BlobVelocities[indexOfOtherBlob];
+                float dist = math.distance(blobPos, otherPos);
+                float distFrac = dist / InfluenceRadius;
+                distFrac = math.pow(distFrac, InfluenceFalloff);
+                float invDelta = math.clamp( 1.0f - distFrac, 0.0f, 1.0f);//closer means more force transferred.
+                blobAccel += invDelta * curVel;//todo add some kinda proportion control thing.
+             
+            }
+
+            BlobAccelAccumulator[index] = blobAccel;
+        }
+    }
+    
+    [BurstCompile]
     //This is actually "apply differential" so it's used for acceleration->velocity, and velocity->position
     public struct JobApplyDerivative : IJobParallelFor
     {
