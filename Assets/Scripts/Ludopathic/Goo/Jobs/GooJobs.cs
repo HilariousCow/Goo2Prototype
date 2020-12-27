@@ -134,11 +134,15 @@ namespace Ludopathic.Goo.Jobs
                 //only care about the difference between our velocities, not the other person's absolute
                 float2 velocityDelta = blobVel - otherVel;
                 
+                //maybe only care about stuff ahead of you?
+
+                float dot = math.dot(otherVel, blobPos - otherPos);
+                dot = math.clamp(dot, 0.0f, 1.0f);
                 float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
                 float distFrac = dist / InfluenceRadius;
                 distFrac = math.pow(distFrac, InfluenceFalloff);
                 float invDelta = math.clamp( 1.0f - distFrac, 0.0f, 1.0f);//closer means more force transferred.
-                blobAccel += InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
+                blobAccel += dot * InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
 
@@ -664,10 +668,11 @@ namespace Ludopathic.Goo.Jobs
         public void Execute(int index)
         {
            
-            float xFraction = (values[index].x - maxVal) / (maxVal + maxVal);
-            float yFraction = (values[index].x - maxVal) / (maxVal + maxVal);
+            float xFraction = ((values[index].x - maxVal) / (maxVal + maxVal) + 1f) * 0.5f;
+            float yFraction = ((values[index].y - maxVal) / (maxVal + maxVal) + 1f) * 0.5f;
             
-            Color col = new Color(xFraction, yFraction, 0.0f, 1.0f);
+         
+            Color col = new Color(xFraction, yFraction, 1.0f, 1.0f);
             colors[index] = col;
         }
     }
