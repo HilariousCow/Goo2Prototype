@@ -412,23 +412,23 @@ namespace Ludopathic.Goo.Jobs
                 
                 //simple spring force at first
                 float2 delta = posA - posB;
-                float deltaDist = math.length(posA - posB);
+                float deltaDist = math.lengthsq(posA - posB);
 
                 if (deltaDist > 0.0)
                 {
-                    float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
+                    float frac = math.clamp( deltaDist / (MaxEdgeDistanceRaw*MaxEdgeDistanceRaw), 0f, 1f);
                     float falloff = (1.0f - frac);
-                    falloff *= falloff;
+                  //  falloff *= falloff;
                     
-                    frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
-                    float k = frac - 0.5f;
+                   // frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
+                    float k = falloff - 0.5f;
                     float f = k * SpringConstant;
 
                     float2 dir = math.normalize(delta);
                     
                     //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
                     
-                    float2 force = -f * dir * falloff;
+                    float2 force = f * dir * falloff;
                     
                     AccelerationAccumulator[index] += force;
                 }

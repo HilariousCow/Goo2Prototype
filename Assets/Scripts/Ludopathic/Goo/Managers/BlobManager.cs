@@ -270,24 +270,7 @@ namespace Ludopathic.Goo.Managers
 
          //todo: update all these properties
 
-         _jobDataQueryNearestNeighbours.MaxEdgeDistanceSq = GooPhysics.MaxSpringDistance * GooPhysics.MaxSpringDistance;
-         _jobDataQueryNearestNeighbours.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
-         
-         _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
-         
-         _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
-         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
-         _jobSpringForcesUsingKnn.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
-         
-         _jobDataSpringForcesNaive.SpringConstant = GooPhysics.SpringForce;
-         _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
-         _jobDataSpringForcesNaive.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
-
-         _jobDataFluidInfluence.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
-         _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
-         _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
-         _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
-
+       
          
          //OverallGooBounds = new Bounds(Vector3.zero, Vector3.one * float.MinValue);
          //_jobDataEncapsulateAABB.AABBBounds = OverallGooBounds;
@@ -505,15 +488,36 @@ namespace Ludopathic.Goo.Managers
       }
 
 
-      void UpdateJobDeltaTimes(float deltaTime)
+      void UpdateRuntimeValues(float deltaTime)
       {
          //update cursor friction
          _jobDataApplyCursorFriction.DeltaTime = deltaTime;
          _jobDataUpdateCursorPositions.DeltaTime = deltaTime;
          _jobDataApplyFrictionToBlobs.DeltaTime = deltaTime;
-        
          _jobDataUpdateBlobPositions.DeltaTime = deltaTime;
       
+         
+         _jobDataApplyFrictionToBlobs.ConstantFriction = GooPhysics.ConstantFriction;
+         _jobDataApplyFrictionToBlobs.LinearFriction = GooPhysics.ConstantFriction;
+         
+         _jobDataQueryNearestNeighbours.MaxEdgeDistanceSq = GooPhysics.MaxSpringDistance * GooPhysics.MaxSpringDistance;
+         _jobDataQueryNearestNeighbours.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
+         
+         _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
+         
+         _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
+         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
+         _jobSpringForcesUsingKnn.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
+         
+         _jobDataSpringForcesNaive.SpringConstant = GooPhysics.SpringForce;
+         _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
+         _jobDataSpringForcesNaive.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
+
+         _jobDataFluidInfluence.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
+         _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
+         _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
+         _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
+
        
       }
       
@@ -531,7 +535,7 @@ namespace Ludopathic.Goo.Managers
             //_cursorRadii[index] = 1.0f;
          }
 
-         UpdateJobDeltaTimes( deltaTime );
+         UpdateRuntimeValues( deltaTime );
          
         
          #region Job Kickoff and Dependancy
