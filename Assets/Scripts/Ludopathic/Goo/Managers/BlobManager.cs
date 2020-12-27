@@ -20,6 +20,8 @@ namespace Ludopathic.Goo.Managers
       public InputManager InputMan;
       public GameObject BlobPrefab;
       public ParticleSystem BlobParticleSystemOutput;
+
+      public Camera CameraTransform;
       
       //Gameplay properties
       public float CursorRadius = 10.0f;
@@ -60,6 +62,11 @@ namespace Ludopathic.Goo.Managers
       private Transform[] _cursorOutputTransforms;
       private TransformAccessArray _cursorTransformAccessArray;
       
+      private TransformAccessArray _cameraTransformAccessArray;
+      
+      
+      
+      
       public int NUM_BLOBS = 1000;
       
       //Blob Properties.
@@ -71,6 +78,8 @@ namespace Ludopathic.Goo.Managers
       private NativeArray<Color> _blobColors;
       
       private NativeArray<float3> _blobPositionsV3;
+
+      public Bounds OverallGooBounds;
       
       
       //Goo Graph
@@ -120,7 +129,8 @@ namespace Ludopathic.Goo.Managers
       
       private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
       private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
-      
+
+      private JobMoveCameraToFitPoints _jobDataMoveCameraToFitPoints;
       
       //
       //Job Handles (probably don't need to be members)
@@ -152,7 +162,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleUpdateBlobPositions;
       private JobHandle _jobHandleCopyCursorsToTransforms;
       private JobHandle _jobHandleCopyBlobsToParticleSystem;
-
+      private JobHandle _jobHandleBuildAABB;
 
       
       //Debug vis
@@ -203,7 +213,7 @@ namespace Ludopathic.Goo.Managers
          }
          _cursorTransformAccessArray = new TransformAccessArray(_cursorOutputTransforms);
 
-
+         _cameraTransformAccessArray = new TransformAccessArray( new Transform[]{ CameraTransform.transform });
          InitBlobData(NUM_BLOBS, BlobParticleSystemOutput);
 
       }
@@ -275,7 +285,12 @@ namespace Ludopathic.Goo.Managers
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
          _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
-      
+
+         
+         //OverallGooBounds = new Bounds(Vector3.zero, Vector3.one * float.MinValue);
+         //_jobDataEncapsulateAABB.AABBBounds = OverallGooBounds;
+         
+         
          UpdateSimulation(Time.deltaTime);
       }
 
@@ -283,7 +298,7 @@ namespace Ludopathic.Goo.Managers
       {
 
          float deltaTime = 0f;
-            #region JobDataSetup
+         #region JobDataSetup
          //
          //Init all job data here. Declare roughly inline. Optional brackets for things that can be parallel
          //
@@ -299,7 +314,7 @@ namespace Ludopathic.Goo.Managers
             AccumulatedAcceleration = _cursorAccelerations
          };
 
-      
+
          _jobDataCopyBlobInfoToFloat3 = new JobCopyBlobInfoToFloat3
          {
             BlobPos = _blobPositions,
@@ -307,37 +322,25 @@ namespace Ludopathic.Goo.Managers
             BlobPosFloat3 = _blobPositionsV3
          };
 
-         
+
          _jobBuildKnnTree = new KnnRebuildJob(_knnContainer);
-      
+
          // Initialize all the range query results
-          _blobKNNNearestNeighbourQueryResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
+         _blobKNNNearestNeighbourQueryResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
 
          // Each range query result object needs to declare upfront what the maximum number of points in range is
          for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i) {
-            // Allow for a maximum of 1024 results
+         // Allow for a maximum of 1024 results
             _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          }
-         
+
          _jobDataQueryNearestNeighboursKNN = new QueryRangeBatchJob{ m_container = _knnContainer,
-            m_queryPositions = _blobPositionsV3, 
-            m_range = GooPhysics.MaxSpringDistance,
-            Results = _blobKNNNearestNeighbourQueryResults};
-         
-      
-         
+         m_queryPositions = _blobPositionsV3, 
+         m_range = GooPhysics.MaxSpringDistance,
+         Results = _blobKNNNearestNeighbourQueryResults};
          #endregion //ResetBeginningOfSimFrame
-         
-         
-     
-         
-         
+
          #region Updates
-         //
-         // Cursors must be done first. Luckily there's very few
-         //
-         
-         
          //build edges with existing positions
 
          _jobDataQueryNearestNeighbours = new JobFindNearestNeighboursNaive
@@ -347,7 +350,6 @@ namespace Ludopathic.Goo.Managers
             BlobEdgeCount = _blobEdgeCount,
             //MaxEdgeDistanceSq = MaxSpringDistance * MaxSpringDistance,
             MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours
-            
          };
 
          _jobSpringForcesUsingKnn = new JobSpringForceUsingKNNResults()
@@ -357,9 +359,9 @@ namespace Ludopathic.Goo.Managers
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
             SpringConstant = GooPhysics.SpringForce,
             Positions = _blobPositions
-            
+
          };
-         
+
          _jobDataSpringForcesNaive = new JobSpringForce()
          {
             Positions = _blobPositions,
@@ -377,32 +379,30 @@ namespace Ludopathic.Goo.Managers
             BlobVelocities = _blobVelocities,
             BlobAccelAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
-            
+
             InfluenceRadius = GooPhysics.MaxSpringDistance,
             InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower,
             InfluenceModulator =  GooPhysics.FluidInfluenceModulator
          };
-            
+
          //update cursor accel based on inputs
          _jobDataSetCursorAcceleration = new JobSetAcceleration
          {
             ValueToSet = _cursorInputDeltas,
             AccumulatedAcceleration = _cursorAccelerations
          };
-         
+
          //update cursor friction
          _jobDataApplyCursorFriction = new JobApplyLinearAndConstantFriction
          {
             DeltaTime = deltaTime,
-            //TODO: maybe I want friction based on acceleration (t*t) since that's the freshest part of this.
-            //So, constant + linear(t) + accelerative (t*t)
             LinearFriction = CursorLinearFriction,
             ConstantFriction = CursorConstantFriction,
             AccumulatedAcceleration = _cursorAccelerations,
             Velocity = _cursorVelocities
          };
-         
-         
+
+
          _jobDataUpdateCursorPositions = new JobApplyAcceelrationAndVelocity
          {
             DeltaTime = deltaTime,
@@ -410,9 +410,7 @@ namespace Ludopathic.Goo.Managers
             VelocityInAndOut = _cursorVelocities,
             PositionInAndOut = _cursorPositions
          };
-         
-     
-         
+
          //Now we can update the blobs with the new state of the cursors
          _jobDataCursorsInfluenceBlobs = new JobCursorsInfluenceBlobs
          {
@@ -422,8 +420,7 @@ namespace Ludopathic.Goo.Managers
             BlobPositions = _blobPositions, 
             BlobAccelAccumulator = _blobAccelerations
          };
-         
-      
+
          _jobDataApplyFrictionToBlobs = new JobApplyLinearAndConstantFriction
          {
             DeltaTime = deltaTime,
@@ -434,7 +431,7 @@ namespace Ludopathic.Goo.Managers
             AccumulatedAcceleration = _blobAccelerations,
             Velocity = _blobVelocities
          };
-         
+
          //Blob sim gets updated
          _jobDataUpdateBlobPositions = new JobApplyAcceelrationAndVelocity
          {
@@ -443,8 +440,7 @@ namespace Ludopathic.Goo.Managers
             VelocityInAndOut = _blobVelocities,
             PositionInAndOut = _blobPositions
          };
-     
-            
+
          //Output
 
          _jobDataDebugColorisationInt = new JobDebugColorisationInt()
@@ -454,7 +450,7 @@ namespace Ludopathic.Goo.Managers
             values = _blobEdgeCount,
             colors = _blobColors,
          };
-      
+
          _jobDataDebugColorisationKNNLength = new JobDebugColorisationKNNRangeQuery()
          {
             minVal = 0,
@@ -471,30 +467,35 @@ namespace Ludopathic.Goo.Managers
             colors =_blobColors,
          }*/
 
-       _jobDataDebugColorisationFloat2Magnitude = new JobDebugColorisationFloat2XY
-       {
+      _jobDataDebugColorisationFloat2Magnitude = new JobDebugColorisationFloat2XY
+      {
           maxVal = 10,
           values = _blobVelocities,
           colors = _blobColors
-       };
-            
+      };
+             
+      _jobDataCopyBlobsToParticleSystem = new JopCopyBlobsToParticleSystem
+      {
+         colors =  _blobColors,
+         positions = _blobPositions,
+         velocities = _blobVelocities
+      };
       
-            
-         _jobDataCopyBlobsToParticleSystem = new JopCopyBlobsToParticleSystem
-         {
-            colors =  _blobColors,
-            positions = _blobPositions,
-            velocities = _blobVelocities
-         };
-         
-         _jobDataCopyCursorsToTransforms = new JobCopyBlobsToTransforms
-         {
-            BlobPos = _cursorPositions
-         };
-         #endregion //Updates
-         
-         #endregion // JobDataSetup
-       
+      _jobDataCopyCursorsToTransforms = new JobCopyBlobsToTransforms
+      {
+         BlobPos = _cursorPositions
+      };
+
+
+      #region BoundsForCamera
+      _jobDataMoveCameraToFitPoints = new JobMoveCameraToFitPoints()
+      {
+         Positions = _blobPositions
+      };
+      #endregion // BoundsForCamera
+      #endregion // Updates
+      #endregion // JobDataSetup
+
       }
 
 
@@ -642,11 +643,14 @@ namespace Ludopathic.Goo.Managers
          
          _jobHandleCopyBlobsToParticleSystem.Complete();
          _jobHandleCopyCursorsToTransforms.Complete();
-         
-         
+
+         _jobHandleBuildAABB = _jobDataMoveCameraToFitPoints.Schedule(_cameraTransformAccessArray,   _jobHandleUpdateBlobPositions);
+         _jobHandleBuildAABB.Complete();
+
+
          #endregion // Job Kickoff and Dependancy
-         
-         
+
+
          //No. You must call "complete" on any handle that has something dependant on it. Which is all of them, you'd expect.
          //maybe i only need to complete the last, since that's dependant.
       }
@@ -654,9 +658,6 @@ namespace Ludopathic.Goo.Managers
   
 
       public Gradient EdgeBlobGradient;
-      
-
-
       private void LateUpdate()
       {
          UpdateBlobColors(ref _blobColors);//wants to be a job tbh.
@@ -665,7 +666,10 @@ namespace Ludopathic.Goo.Managers
          //also, looks like you can complete this in late update.
          //also, you only have to complete the job of last job in a chain.
 
+         CameraTransform.nearClipPlane = CameraTransform.transform.position.y - 10f;
+         CameraTransform.farClipPlane = CameraTransform.transform.position.y + 10f;
          _GameFrame++;
+         
       }
 
       //slow assed. Can jobify

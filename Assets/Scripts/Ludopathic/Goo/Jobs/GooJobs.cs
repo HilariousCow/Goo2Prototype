@@ -9,6 +9,8 @@ using UnityEngine;
 
 namespace Ludopathic.Goo.Jobs
 {
+    
+    
     [BurstCompile]
     public struct JobZeroFloat2Array : IJobParallelFor
     {
@@ -663,5 +665,37 @@ namespace Ludopathic.Goo.Jobs
             colors[index] = col;
         }
     }
+    
+    //TODO: vis that shows 2ds as separate axes.
+    [BurstCompile]
+    public struct JobMoveCameraToFitPoints : IJobParallelForTransform
+    {
+        
+        [ReadOnly]
+        public NativeArray<float2> Positions;
+     
+        public void Execute(int index, TransformAccess transform)
+        {
+            float2 min = new float2(float.MaxValue, float.MaxValue);
+            float2 max = new float2(float.MinValue, float.MinValue);
+
+            for (int i = 0; i < Positions.Length; i++)
+            {
+                float2 pos = Positions[i];
+                if (pos.x > max.x) max.x = pos.x;
+                if (pos.y > max.y) max.y = pos.y;
+                if (pos.x < min.x) min.x = pos.x;
+                if (pos.y < min.y) min.y = pos.y;
+            }
+
+            float2 center = math.lerp(min, max, 0.5f);
+            float size = math.distance(min, max);
+            transform.position = new Vector3(center.x, size*1.6f, center.y);
+            
+            transform.rotation = Quaternion.LookRotation(-transform.position, Vector3.forward);
+            //todo: look at center
+        }
+    }
+    
     
 }
