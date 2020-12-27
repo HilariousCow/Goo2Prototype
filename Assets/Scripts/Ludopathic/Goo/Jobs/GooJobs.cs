@@ -145,8 +145,9 @@ namespace Ludopathic.Goo.Jobs
             
                 float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
                 float distFrac =math.clamp(  dist / InfluenceRadius , 0.0f, 1.0f);
-                distFrac = math.pow(distFrac, InfluenceFalloff);
+               
                 float invDelta = 1.0f - distFrac;//closer means more force transferred.
+                invDelta = math.pow(invDelta, InfluenceFalloff);
                 blobAccel +=/* dot */ InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
