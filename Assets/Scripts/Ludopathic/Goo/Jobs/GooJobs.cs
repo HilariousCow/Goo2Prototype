@@ -114,7 +114,9 @@ namespace Ludopathic.Goo.Jobs
         //Also just the blobs close enough for blob influence
         public void Execute(int index)
         {
+            
             float2 blobPos = BlobPositions[index];
+            float2 blobVel = BlobPositions[index];
             float2 blobAccel = BlobAccelAccumulator[index];
             
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
@@ -127,12 +129,16 @@ namespace Ludopathic.Goo.Jobs
                 if(index == indexOfOtherBlob) continue;//don't self influence
                 
                 float2 otherPos = BlobPositions[indexOfOtherBlob];
-                float2 curVel = BlobVelocities[indexOfOtherBlob];
+                float2 otherVel = BlobVelocities[indexOfOtherBlob];
+                
+                //only care about the difference between our velocities, not the other person's absolute
+                float2 velocityDelta = blobVel - otherVel;
+                
                 float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
                 float distFrac = dist / InfluenceRadius;
                 distFrac = math.pow(distFrac, InfluenceFalloff);
                 float invDelta = math.clamp( 1.0f - distFrac, 0.0f, 1.0f);//closer means more force transferred.
-                blobAccel += InfluenceModulator * invDelta * curVel;//todo add some kinda proportion control thing.
+                blobAccel += InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
 
