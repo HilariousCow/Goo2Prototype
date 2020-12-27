@@ -98,7 +98,9 @@ namespace Ludopathic.Goo.Jobs
         
         [ReadOnly]
         public NativeArray<RangeQueryResult> BlobNearestNeighbours;//The list we are iterating through in execute
-        
+
+        [ReadOnly]
+        public int NumNearestNeighbours;
        
         public NativeArray<float2> BlobAccelAccumulator;
 
@@ -120,10 +122,11 @@ namespace Ludopathic.Goo.Jobs
             float2 blobAccel = BlobAccelAccumulator[index];
             
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
+
+            int numNearestNeighboursToCompare = math.min(oneBlobsNearestNeighbours.Length, NumNearestNeighbours);
             //note this is n vs n.
-            for (int jIndex = 0; jIndex < oneBlobsNearestNeighbours.Length; jIndex++)
+            for (int jIndex = 0; jIndex < numNearestNeighboursToCompare; jIndex++)
             {
-                
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[jIndex];
                 
                 if(index == indexOfOtherBlob) continue;//don't self influence
@@ -137,14 +140,14 @@ namespace Ludopathic.Goo.Jobs
                 //maybe only care about stuff ahead of you?
 
                 //experiment
-                float dot = math.dot(otherVel, math.normalizesafe(blobPos - otherPos) );
-                dot = math.clamp(dot, 0.0f, 1.0f);
+              //  float dot = math.dot(otherVel, math.normalizesafe(blobPos - otherPos) );
+             //   dot = math.clamp(dot, 0.0f, 1.0f);
             
                 float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
-                float distFrac = dist / InfluenceRadius;
+                float distFrac =math.clamp(  dist / InfluenceRadius , 0.0f, 1.0f);
                 distFrac = math.pow(distFrac, InfluenceFalloff);
-                float invDelta = math.clamp( 1.0f - distFrac, 0.0f, 1.0f);//closer means more force transferred.
-                blobAccel += dot * InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
+                float invDelta = 1.0f - distFrac;//closer means more force transferred.
+                blobAccel +=/* dot */ InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
 
@@ -358,7 +361,7 @@ namespace Ludopathic.Goo.Jobs
                     
                     //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
 
-                    float2 force = -springForce * dir * falloff;
+                    float2 force = springForce * dir * falloff;
                     
                     AccelerationAccumulator[index] += force;
                 }

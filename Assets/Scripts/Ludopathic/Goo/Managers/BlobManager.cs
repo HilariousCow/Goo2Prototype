@@ -283,6 +283,7 @@ namespace Ludopathic.Goo.Managers
          _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          _jobDataSpringForcesNaive.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
 
+         _jobDataFluidInfluence.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
          _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
@@ -384,6 +385,7 @@ namespace Ludopathic.Goo.Managers
             BlobAccelAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
 
+            NumNearestNeighbours = GooPhysics.MaxNearestNeighbours,
             InfluenceRadius = GooPhysics.MaxSpringDistance,
             InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower,
             InfluenceModulator =  GooPhysics.FluidInfluenceModulator
