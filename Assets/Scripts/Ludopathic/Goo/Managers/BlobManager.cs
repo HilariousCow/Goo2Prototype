@@ -291,7 +291,7 @@ namespace Ludopathic.Goo.Managers
          //_jobDataEncapsulateAABB.AABBBounds = OverallGooBounds;
          
          
-         UpdateSimulation(Time.deltaTime);
+         UpdateSimulation(Mathf.Min(1f/60f, Time.deltaTime) );
       }
 
       private void InitJobData()
