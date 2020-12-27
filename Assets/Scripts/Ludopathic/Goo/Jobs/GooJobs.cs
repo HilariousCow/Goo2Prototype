@@ -136,8 +136,10 @@ namespace Ludopathic.Goo.Jobs
                 
                 //maybe only care about stuff ahead of you?
 
-                float dot = math.dot(otherVel, blobPos - otherPos);
+                //experiment
+                float dot = math.dot(otherVel, math.normalizesafe(blobPos - otherPos) );
                 dot = math.clamp(dot, 0.0f, 1.0f);
+            
                 float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
                 float distFrac = dist / InfluenceRadius;
                 distFrac = math.pow(distFrac, InfluenceFalloff);
@@ -307,19 +309,9 @@ namespace Ludopathic.Goo.Jobs
         //read and write
         public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
 
-        /*
         [ReadOnly]
-        public int MaxEdgesPerBlob;
+        public int NumNearestNeighbours;
         
-        [ReadOnly]
-        public NativeArray<int> BlobEdgeCount;
-        
-        [ReadOnly]
-        [NativeDisableParallelForRestriction] 
-        public NativeArray<BlobEdge> BlobEdges;
-        */
-
-            
         [ReadOnly]
         public float MaxEdgeDistanceRaw;
         
@@ -331,16 +323,22 @@ namespace Ludopathic.Goo.Jobs
         {
             float2 thisBlobsPosition = Positions[index];
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
-
-
             int numBlobEdges = oneBlobsNearestNeighbours.Length;
             
-            if(numBlobEdges <= 1) return;//we probably found ourself!
+            int numBlobsToSample = math.min(numBlobEdges, NumNearestNeighbours);
+            float MaxEdgeDistanceSq = MaxEdgeDistanceRaw * MaxEdgeDistanceRaw;
             //for each nearby blob
-            for (int j = 1; j < numBlobEdges; j++)
+            
+            for (int j = 0; j < numBlobsToSample; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
+                
+                if(indexOfOtherBlob == index) continue;
+                
                 float2 posB = Positions[indexOfOtherBlob];
+                float deltaDistSq = math.lengthsq(thisBlobsPosition - posB);
+                
+                if(deltaDistSq > MaxEdgeDistanceSq) continue;//let's ignore out of range boys because i think we get n nearest neighbours no matter what
                 
                 //simple spring force at first
                 float2 delta = thisBlobsPosition - posB;
@@ -349,18 +347,18 @@ namespace Ludopathic.Goo.Jobs
                 if (deltaDist > 0.0)
                 {
                     float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
-                    float falloff = (1.0f - frac);
-                    falloff *= falloff;
+                    float falloff = (1.0f - frac*frac);
+                    //falloff *= falloff;
                     
-                    frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
-                    float k = frac - 0.5f;
-                    float f = k * SpringConstant;
+                  //  frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
+                    float k = falloff - 0.5f ;
+                    float springForce = k * SpringConstant ;
 
                     float2 dir = math.normalize(delta);
                     
                     //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
-                    
-                    float2 force = -f * dir * falloff;
+
+                    float2 force = -springForce * dir * falloff;
                     
                     AccelerationAccumulator[index] += force;
                 }

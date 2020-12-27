@@ -277,6 +277,7 @@ namespace Ludopathic.Goo.Managers
          
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
+         _jobSpringForcesUsingKnn.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          
          _jobDataSpringForcesNaive.SpringConstant = GooPhysics.SpringForce;
          _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
@@ -334,10 +335,13 @@ namespace Ludopathic.Goo.Managers
             _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          }
 
-         _jobDataQueryNearestNeighboursKNN = new QueryRangeBatchJob{ m_container = _knnContainer,
-         m_queryPositions = _blobPositionsV3, 
-         m_range = GooPhysics.MaxSpringDistance,
-         Results = _blobKNNNearestNeighbourQueryResults};
+         _jobDataQueryNearestNeighboursKNN = new QueryRangeBatchJob{ 
+            m_container = _knnContainer,
+            m_queryPositions = _blobPositionsV3, 
+            m_range = GooPhysics.MaxSpringDistance,
+            Results = _blobKNNNearestNeighbourQueryResults
+            
+         };
          #endregion //ResetBeginningOfSimFrame
 
          #region Updates
@@ -358,8 +362,8 @@ namespace Ludopathic.Goo.Managers
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
             SpringConstant = GooPhysics.SpringForce,
-            Positions = _blobPositions
-
+            Positions = _blobPositions,
+            NumNearestNeighbours = GooPhysics.MaxNearestNeighbours
          };
 
          _jobDataSpringForcesNaive = new JobSpringForce()
