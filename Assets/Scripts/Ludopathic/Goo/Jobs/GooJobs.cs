@@ -40,6 +40,21 @@ namespace Ludopathic.Goo.Jobs
             AccumulatedAcceleration[index] = ValueToSet[index];
         }
     }
+    
+    
+    [BurstCompile]
+    public struct JobSetIntValue : IJobParallelFor
+    {
+        [WriteOnly]
+        public NativeArray<int> ValuesToSet;
+
+        [ReadOnly]
+        public int Value;
+        public void Execute(int index)
+        {
+            ValuesToSet[index] = Value;
+        }
+    }
 
     [BurstCompile]
     public struct JobCursorsInfluenceBlobs : IJobParallelFor
@@ -147,7 +162,7 @@ namespace Ludopathic.Goo.Jobs
                 float distFrac =math.clamp(  dist / InfluenceRadius , 0.0f, 1.0f);
                
                 float invDelta = 1.0f - distFrac;//closer means more force transferred.
-                invDelta = math.pow(invDelta, InfluenceFalloff);
+              //  invDelta = math.pow(invDelta, InfluenceFalloff);
                 blobAccel +=/* dot */ InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
@@ -346,16 +361,16 @@ namespace Ludopathic.Goo.Jobs
                 
                 //simple spring force at first
                 float2 delta = thisBlobsPosition - posB;
-                float deltaDist = math.length(thisBlobsPosition - posB);
+              //  float deltaDist = math.length(thisBlobsPosition - posB);
 
-                if (deltaDist > 0.0)
+                if (deltaDistSq > 0.0)
                 {
-                    float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
-                    float falloff = (1.0f - frac*frac);
+                    float frac = math.clamp( deltaDistSq / MaxEdgeDistanceSq, 0f, 1f);
+                    float falloff = (1.0f - frac);
                     //falloff *= falloff;
                     
                   //  frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
-                    float k = falloff - 0.5f ;
+                    float k = (falloff - 0.5f)  ;
                     float springForce = k * SpringConstant ;
 
                     float2 dir = math.normalize(delta);
@@ -402,6 +417,8 @@ namespace Ludopathic.Goo.Jobs
             
             
             int numBlobEdges = BlobEdgeCount[index];
+
+            float maxDistanceSq = MaxEdgeDistanceRaw;
             //for each nearby blob
             for (int j = 0; j < numBlobEdges; j++)
             {
@@ -416,7 +433,7 @@ namespace Ludopathic.Goo.Jobs
 
                 if (deltaDist > 0.0)
                 {
-                    float frac = math.clamp( deltaDist / (MaxEdgeDistanceRaw*MaxEdgeDistanceRaw), 0f, 1f);
+                    float frac = math.clamp( deltaDist / maxDistanceSq, 0f, 1f);
                     float falloff = (1.0f - frac);
                   //  falloff *= falloff;
                     

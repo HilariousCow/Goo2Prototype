@@ -71,7 +71,7 @@ namespace Ludopathic.Goo.Managers
       
       //Blob Properties.
       private NativeArray<int> _blobTeamIDs;
-      //private NativeArray<int> _blobGroupIDs;//next up!
+      private NativeArray<int> _blobGroupIDs;
       private NativeArray<float2> _blobAccelerations;
       private NativeArray<float2> _blobVelocities;
       private NativeArray<float2> _blobPositions;
@@ -97,7 +97,8 @@ namespace Ludopathic.Goo.Managers
       //
       private JobZeroFloat2Array _jobDataResetBlobAccelerations;
       private JobZeroFloat2Array _jobDataResetCursorAccelerations;
-
+      private JobSetIntValue _jobDataResetGooGroups;//what if we don't totally flush this every time? Maybe identify grouped blobs that are no longer connected to their established group?
+      
       private JobCopyBlobInfoToFloat3 _jobDataCopyBlobInfoToFloat3;
       
       
@@ -139,10 +140,11 @@ namespace Ludopathic.Goo.Managers
       private static int _GameFrame = 0;
       private JobHandle _jobHandleResetBlobAccelerations;
       private JobHandle _jobHandleResetCursorAccelerations;
+      private JobHandle _jobHandleResetGroupIDs;
       
       [Obsolete("Replacing with KNNQueries")]
       private JobHandle _jobHandleBuildEdges;
-      private JobHandle _jobHandleResetJobs;
+      private JobHandle _jobHandleResetJobs;//combiner
       private JobHandle _jobCopy2DArrayTo3DArray;//TODO
 
 
@@ -230,6 +232,7 @@ namespace Ludopathic.Goo.Managers
          _blobPositions = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobAccelerations = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobTeamIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
+         _blobGroupIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          _blobColors = new NativeArray<Color>(NUM_BLOBS, Allocator.Persistent);
          _blobPositionsV3 = new NativeArray<float3>(NUM_BLOBS, Allocator.Persistent);
          
@@ -239,6 +242,7 @@ namespace Ludopathic.Goo.Managers
             Vector3 randomPos = Random.insideUnitCircle * PetriDishRadius;
             Vector3 randomVel = Random.insideUnitCircle;
             _blobTeamIDs[index] = index % NumTeams;
+            _blobGroupIDs[index] = -1;
             _blobVelocities[index] = new float2(randomVel.x, randomVel.y);
             _blobPositions[index] = new float2(randomPos.x, randomPos.y);
             _blobAccelerations[index] =  float2.zero;
@@ -299,6 +303,11 @@ namespace Ludopathic.Goo.Managers
             AccumulatedAcceleration = _cursorAccelerations
          };
 
+         _jobDataResetGooGroups = new JobSetIntValue()
+         {
+            ValuesToSet = _blobGroupIDs,
+            Value = -1
+         };
 
          _jobDataCopyBlobInfoToFloat3 = new JobCopyBlobInfoToFloat3
          {
@@ -546,7 +555,7 @@ namespace Ludopathic.Goo.Managers
          #region ResetBeginningOfSimFrame
          _jobHandleResetBlobAccelerations = _jobDataResetBlobAccelerations.Schedule(_blobAccelerations.Length, 64);
          _jobHandleResetCursorAccelerations = _jobDataResetCursorAccelerations.Schedule(_cursorAccelerations.Length, 1);
-         
+         _jobHandleResetGroupIDs = _jobDataResetGooGroups.Schedule(_blobGroupIDs.Length, 64);
          #endregion //ResetBeginningOfSimFrame
          
          //_jobHandleResetJobs.Complete();
@@ -577,8 +586,8 @@ namespace Ludopathic.Goo.Managers
          //todo require above jobs are complete in combo
          
          
-         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _graphSetup);
-         
+         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
+         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _graphSetup);
          #region SimUpdateFrame
          //
          // Cursors must be done first. Luckily there's very few
@@ -739,6 +748,7 @@ namespace Ludopathic.Goo.Managers
          if(_blobPositions .IsCreated) _blobPositions.Dispose();
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
+         if(_blobGroupIDs.IsCreated) _blobGroupIDs.Dispose();
          if(_blobColors.IsCreated) _blobColors.Dispose();
          if(_blobEdges.IsCreated) _blobEdges.Dispose();
          if(_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
