@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
+
 using UnityEngine.ParticleSystemJobs;
 using UnityEngine;
 
@@ -55,6 +56,9 @@ namespace Ludopathic.Goo.Jobs
             ValuesToSet[index] = Value;
         }
     }
+    
+     
+    
 
     [BurstCompile]
     public struct JobCursorsInfluenceBlobs : IJobParallelFor
@@ -384,6 +388,95 @@ namespace Ludopathic.Goo.Jobs
             }
         }
     }
+    
+    
+    [BurstCompile]
+    public struct JobFloodFillIDs : IJob
+    {
+        
+        [ReadOnly]
+        public NativeArray<RangeQueryResult> BlobNearestNeighbours;
+
+        [ReadOnly]
+        public int NumNearestNeighbours;
+        
+        public NativeArray<int> GroupIDs;
+        public NativeQueue<int> FloodQueue;
+        
+        public void Execute()
+        {
+            
+            int id = 0;
+            
+            for (int i = 0; i < BlobNearestNeighbours.Length; i++)
+            {
+                if (GroupIDs[i] < 0)
+                {
+                   
+
+                    Fill(i, id, ref FloodQueue);
+                    while (!FloodQueue.IsEmpty())
+                    {
+                        int neighbourID = FloodQueue.Dequeue();
+                        Fill(i, id,ref FloodQueue);
+                    }
+
+                
+                }
+                id++;
+            }
+           
+           
+        }
+
+        private void Fill(int index, int id, ref NativeQueue<int> queue)
+        {
+            if (GroupIDs[index] < 0)//only flood fill unassigned blobs
+            {
+                GroupIDs[index] = id;
+                RangeQueryResult neighbours = BlobNearestNeighbours[index];
+                int neighbourMax = math.min(neighbours.Length, NumNearestNeighbours);
+                for (int j = 0; j < neighbourMax; j++)
+                {
+                    queue.Enqueue(neighbours[j]);
+                }
+            }
+        }
+
+        /*
+         Causes stack overflow on large scenes (though is technically correct)
+        public void Execute()
+        {
+            int idToFillWith = 0;
+
+            for (int i = 0; i < BlobNearestNeighbours.Length; i++)
+            {
+                if (GroupIDs[i] < 0)
+                {
+                    FillNeighboursWithID(i, idToFillWith);
+                }
+                idToFillWith++;
+            }
+        }
+
+        private void FillNeighboursWithID(int index, int idToFillWith)
+        {
+            GroupIDs[index] = idToFillWith;
+            RangeQueryResult nearestNeighbours = BlobNearestNeighbours[index];
+            int numBlobsToCheck = math.min(NumNearestNeighbours, nearestNeighbours.Length);
+            for (int j = 0; j < numBlobsToCheck; j++)//possibly start at 1 because 0 index is "us"
+            {
+                int indexOfNearestNeighbour = nearestNeighbours[j];
+                if(index == indexOfNearestNeighbour) continue;//don't do infinite recursion!
+                if (GroupIDs[indexOfNearestNeighbour] < 0)
+                {
+                    FillNeighboursWithID(indexOfNearestNeighbour, idToFillWith);
+                }
+            }
+        }
+        */
+    }
+    
     
     [BurstCompile]
     public struct JobSpringForce : IJobParallelFor

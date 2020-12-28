@@ -79,6 +79,7 @@ namespace Ludopathic.Goo.Managers
       
       private NativeArray<float3> _blobPositionsV3;
 
+      private NativeQueue<int> _floodQueue;
       public Bounds OverallGooBounds;
       
       
@@ -106,7 +107,10 @@ namespace Ludopathic.Goo.Managers
       private KnnRebuildJob _jobBuildKnnTree;
       private QueryRangeBatchJob _jobDataQueryNearestNeighboursKNN;
       
+      
       private JobFindNearestNeighboursNaive _jobDataQueryNearestNeighbours;
+
+      private JobFloodFillIDs _jobDataFloodFillGroupIDs;
       private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
       private JobSpringForce _jobDataSpringForcesNaive;
 
@@ -152,7 +156,8 @@ namespace Ludopathic.Goo.Managers
 
       private JobHandle _jobHandleCopyBlobInfoToFloat3;
       private JobHandle _jobHandleBuildKNNTree;
-      
+
+      private JobHandle _jobHandleFloodFillGroupiID;
       private JobHandle _jobHandleSpringForces;
       
       private JobHandle _jobHandleSetCursorAcceleration;
@@ -233,8 +238,10 @@ namespace Ludopathic.Goo.Managers
          _blobAccelerations = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobTeamIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          _blobGroupIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
+         _floodQueue = new NativeQueue<int>(Allocator.Persistent);
          _blobColors = new NativeArray<Color>(NUM_BLOBS, Allocator.Persistent);
          _blobPositionsV3 = new NativeArray<float3>(NUM_BLOBS, Allocator.Persistent);
+         
          
          //copy init values into scratch data
          for (int index = 0; index < NUM_BLOBS; index++)
@@ -328,6 +335,7 @@ namespace Ludopathic.Goo.Managers
             _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          }
 
+         
          _jobDataQueryNearestNeighboursKNN = new QueryRangeBatchJob{ 
             m_container = _knnContainer,
             m_queryPositions = _blobPositionsV3, 
@@ -349,6 +357,15 @@ namespace Ludopathic.Goo.Managers
             MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours
          };
 
+
+         _jobDataFloodFillGroupIDs = new JobFloodFillIDs()
+         {
+            BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
+            GroupIDs = _blobGroupIDs,
+            NumNearestNeighbours = GooPhysics.MaxNearestNeighbours,
+            FloodQueue = _floodQueue
+         };
+         
          _jobSpringForcesUsingKnn = new JobSpringForceUsingKNNResults()
          {
             AccelerationAccumulator = _blobAccelerations,
@@ -513,6 +530,8 @@ namespace Ludopathic.Goo.Managers
          _jobDataQueryNearestNeighbours.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
          
          _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
+
+         _jobDataFloodFillGroupIDs.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
@@ -610,14 +629,18 @@ namespace Ludopathic.Goo.Managers
          
          //blobs all figure out how much push and pull is coming from neighbouring blobs.
 
+         _jobHandleFloodFillGroupiID = _jobDataFloodFillGroupIDs.Schedule(_jobHandleCursorsInfluenceBlobs);
+            
+         
+         //Do the below really rely on the group ids? Not yet, but we might find a reason for them to?
          if (bUseKNNTree)
          {
              
-            _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleCursorsInfluenceBlobs);
+            _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleFloodFillGroupiID);
          }
          else
          {
-            _jobHandleSpringForces = _jobDataSpringForcesNaive.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
+            _jobHandleSpringForces = _jobDataSpringForcesNaive.Schedule(_blobAccelerations.Length, 64, _jobHandleFloodFillGroupiID);
          }
 
          _jobHandleApplyBlobFriction = _jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
@@ -749,6 +772,7 @@ namespace Ludopathic.Goo.Managers
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
          if(_blobGroupIDs.IsCreated) _blobGroupIDs.Dispose();
+         if (_floodQueue.IsCreated) _floodQueue.Dispose();
          if(_blobColors.IsCreated) _blobColors.Dispose();
          if(_blobEdges.IsCreated) _blobEdges.Dispose();
          if(_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
