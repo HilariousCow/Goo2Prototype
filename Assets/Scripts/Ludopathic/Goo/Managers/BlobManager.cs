@@ -679,11 +679,11 @@ namespace Ludopathic.Goo.Managers
                _jobDataDebugColorisationKNNLength.values = _blobKNNNearestNeighbourQueryResults;
                break;
             case BlobColorDebugStyle.Velocity:
-               _jobDataDebugColorisationFloat2Magnitude.maxVal = 10f;
+               _jobDataDebugColorisationFloat2Magnitude.maxVal = 1f;
                _jobDataDebugColorisationFloat2Magnitude.values = _blobVelocities;
                break;
             case BlobColorDebugStyle.Acceleration:
-               _jobDataDebugColorisationFloat2Magnitude.maxVal = 200f;
+               _jobDataDebugColorisationFloat2Magnitude.maxVal = GooPhysics.SpringForce;
                _jobDataDebugColorisationFloat2Magnitude.values = _blobAccelerations;
                break;
             case BlobColorDebugStyle.TeamID:

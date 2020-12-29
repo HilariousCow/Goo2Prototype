@@ -459,7 +459,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -5176,19 +5176,18 @@ MonoBehaviour:
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
   BlobParticleSystemOutput: {fileID: 491226625}
   CameraTransform: {fileID: 941502024}
-  CursorRadius: 7.58
-  CursorAccel: 201.66
+  CursorRadius: 70.58
+  CursorAccel: 3010.66
   CursorLinearFriction: 0.9
-  CursorConstantFriction: 50
+  CursorConstantFriction: 500
   GooPhysics: {fileID: 11400000, guid: fd2f8aa2eda7f324f8c9231ee550d9c0, type: 2}
-  PetriDishRadius: 20
+  PetriDishRadius: 100
   NumTeams: 1
-  bUseKNNTree: 1
   NUM_BLOBS: 10000
   OverallGooBounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}
-  DebugStyle: 4
+  DebugStyle: 2
   EdgeBlobGradient:
     serializedVersion: 2
     key0: {r: 1, g: 0, b: 0, a: 1}

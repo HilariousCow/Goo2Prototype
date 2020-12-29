@@ -248,14 +248,32 @@ namespace Ludopathic.Goo.Jobs
         //for each blob
         public void Execute(int index)
         {
+            
+            //Approximate Force equation:
+            //
+            //
+            //((k - 2x)^2-0.5) * (1-x^2)
+
+            const float f = 2.3f;
+            const float l = 2.9f;
+            const float k = 2.2f;
+            
+            
+            
             float2 thisBlobsPosition = Positions[index];
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
             int numBlobEdges = oneBlobsNearestNeighbours.Length;
-            
+
+            if (numBlobEdges == 0)
+            {
+                AccelerationAccumulator[index] += new float2(0f,1f);//i bet this never happens
+                return;
+            }
             int numBlobsToSample = math.min(numBlobEdges, NumNearestNeighbours);
             float MaxEdgeDistanceSq = MaxEdgeDistanceRaw * MaxEdgeDistanceRaw;
             //for each nearby blob
-            
+
+            float2 accumulateAcceleration = float2.zero;
             for (int j = 0; j < numBlobsToSample; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
@@ -265,31 +283,30 @@ namespace Ludopathic.Goo.Jobs
                 float2 posB = Positions[indexOfOtherBlob];
                 float deltaDistSq = math.lengthsq(thisBlobsPosition - posB);
                 
-                if(deltaDistSq > MaxEdgeDistanceSq) continue;//let's ignore out of range boys because i think we get n nearest neighbours no matter what
+                if(deltaDistSq > MaxEdgeDistanceSq) continue;//ignore out of range boys. They shouldn't be here
                 
                 //simple spring force at first
                 float2 delta = thisBlobsPosition - posB;
-              //  float deltaDist = math.length(thisBlobsPosition - posB);
+              
 
                 if (deltaDistSq > 0.0)
                 {
-                    float frac = math.clamp( deltaDistSq / MaxEdgeDistanceSq, 0f, 1f);
-                    float falloff = (1.0f - frac);
-                    //falloff *= falloff;
-                    
-                  //  frac *= frac;//power falloff before calculating spring force. i.e moves the spring force target center close to the other blob.
-                    float k = (falloff - 0.5f)  ;
-                    float springForce = k * SpringConstant ;
-
+                    float deltaDist = math.length(delta);//pos b is the origin of the spring
                     float2 dir = math.normalize(delta);
                     
-                    //float2 force = -f * dir * (1.0f -frac) * (1.0f -frac);//v basic with falloff 
+                    float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
 
-                    float2 force = springForce * dir * falloff;
+                    float p = (k - l * frac);
+                    float spring = ((p * p) - 0.5f) * (f - deltaDistSq);
+                    float springForce = math.clamp( spring * SpringConstant, 0f, 1f) ;
                     
-                    AccelerationAccumulator[index] += force;
+                    float2 force = springForce * -dir ;
+
+                    accumulateAcceleration += force;
                 }
             }
+
+            AccelerationAccumulator[index] += accumulateAcceleration;
         }
     }
     
