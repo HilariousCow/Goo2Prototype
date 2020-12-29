@@ -281,24 +281,24 @@ namespace Ludopathic.Goo.Jobs
                 if(indexOfOtherBlob == index) continue;
                 
                 float2 posB = Positions[indexOfOtherBlob];
-                float deltaDistSq = math.lengthsq(thisBlobsPosition - posB);
+                float2 delta = thisBlobsPosition - posB;
+                
+                float deltaDistSq = math.lengthsq(delta);
                 
                // if(deltaDistSq > MaxEdgeDistanceSq) continue;//ignore out of range boys. They shouldn't be here
                 
                 //simple spring force at first
-                float2 delta = thisBlobsPosition - posB;
+                
               
 
                 if (deltaDistSq > 0.0)
                 {
                     float deltaDist = math.length(delta);//pos b is the origin of the spring
-                    float2 dir = math.normalize(delta);
+                    float2 dir = -math.normalize(delta);
                     
-                    float frac = math.clamp( deltaDist / MaxEdgeDistanceRaw, 0f, 1f);
-
-                    float p = (k - l * frac);
-                    float spring = ((p * p) - 0.5f) * (f - deltaDistSq);
-                    float springForce = math.clamp( spring , 0f, 1f) ;
+                    float frac =  deltaDist / MaxEdgeDistanceRaw;
+                    frac *= frac;
+                    float springForce = (-0.5f + frac) * 2.0f;
                     
                     float2 force = springForce * dir * SpringConstant ;
 

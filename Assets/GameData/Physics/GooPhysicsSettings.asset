@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: GooPhysicsSettings
   m_EditorClassIdentifier: 
   MaxNearestNeighbours: 7
-  MaxSpringDistance: 2
-  SpringForce: -3
+  MaxSpringDistance: 3
+  SpringForce: 1
   LinearFriction: 0
-  ConstantFriction: 0
+  ConstantFriction: 0.5
   FluidInfluenceFalloffPower: 1
   FluidInfluenceModulator: 0
