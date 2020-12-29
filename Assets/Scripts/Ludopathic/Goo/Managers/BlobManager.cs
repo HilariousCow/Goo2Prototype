@@ -238,11 +238,11 @@ namespace Ludopathic.Goo.Managers
          for (int index = 0; index < NUM_BLOBS; index++)
          {
             Vector3 randomPos = Random.insideUnitCircle * PetriDishRadius;
-            Vector3 randomVel = Random.insideUnitCircle;
+            //Vector3 randomVel = Random.insideUnitCircle;
             _blobTeamIDs[index] = index % NumTeams;
             _blobGroupIDs[index] = -1;
-            _blobVelocities[index] = new float2(randomVel.x, randomVel.y);
             _blobPositions[index] = new float2(randomPos.x, randomPos.y);
+            _blobVelocities[index] = float2.zero;
             _blobAccelerations[index] =  float2.zero;
             _blobColors[index] = Color.magenta;
             _blobPositionsV3[index] = new float3(randomPos.x, randomPos.y, _blobTeamIDs[index]);
@@ -277,6 +277,7 @@ namespace Ludopathic.Goo.Managers
          
          
          UpdateSimulation(Mathf.Min(1f/60f, Time.deltaTime) );
+         _GameFrame++;
       }
 
       private void InitJobData()
@@ -646,6 +647,8 @@ namespace Ludopathic.Goo.Managers
          
          #endregion // Job Kickoff and Dependancy
 
+       
+         
          //No. You must call "complete" on any handle that has something dependant on it. Which is all of them, you'd expect.
          //maybe i only need to complete the last, since that's dependant.
       }
@@ -659,9 +662,9 @@ namespace Ludopathic.Goo.Managers
          //also, looks like you can complete this in late update.
          //also, you only have to complete the job of last job in a chain.
 
-         CameraTransform.nearClipPlane = CameraTransform.transform.position.y - 10f;
-         CameraTransform.farClipPlane = CameraTransform.transform.position.y + 10f;
-         _GameFrame++;
+         CameraTransform.nearClipPlane = CameraTransform.transform.position.y *0.9f;
+         CameraTransform.farClipPlane = CameraTransform.transform.position.y *1.1f;
+         
          
       }
 

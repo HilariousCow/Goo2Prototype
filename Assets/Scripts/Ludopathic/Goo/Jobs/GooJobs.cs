@@ -254,9 +254,9 @@ namespace Ludopathic.Goo.Jobs
             //
             //((k - 2x)^2-0.5) * (1-x^2)
 
-            const float f = 2.3f;
-            const float l = 2.9f;
-            const float k = 2.2f;
+            const float f = 2.0f;
+            const float l = 1.9f;
+            const float k = 1.2f;
             
             
             
@@ -270,7 +270,7 @@ namespace Ludopathic.Goo.Jobs
                 return;
             }
             int numBlobsToSample = math.min(numBlobEdges, NumNearestNeighbours);
-            float MaxEdgeDistanceSq = MaxEdgeDistanceRaw * MaxEdgeDistanceRaw;
+            //float MaxEdgeDistanceSq = MaxEdgeDistanceRaw * MaxEdgeDistanceRaw;
             //for each nearby blob
 
             float2 accumulateAcceleration = float2.zero;
@@ -283,7 +283,7 @@ namespace Ludopathic.Goo.Jobs
                 float2 posB = Positions[indexOfOtherBlob];
                 float deltaDistSq = math.lengthsq(thisBlobsPosition - posB);
                 
-                if(deltaDistSq > MaxEdgeDistanceSq) continue;//ignore out of range boys. They shouldn't be here
+               // if(deltaDistSq > MaxEdgeDistanceSq) continue;//ignore out of range boys. They shouldn't be here
                 
                 //simple spring force at first
                 float2 delta = thisBlobsPosition - posB;
@@ -298,9 +298,9 @@ namespace Ludopathic.Goo.Jobs
 
                     float p = (k - l * frac);
                     float spring = ((p * p) - 0.5f) * (f - deltaDistSq);
-                    float springForce = math.clamp( spring * SpringConstant, 0f, 1f) ;
+                    float springForce = math.clamp( spring , 0f, 1f) ;
                     
-                    float2 force = springForce * -dir ;
+                    float2 force = springForce * dir * SpringConstant ;
 
                     accumulateAcceleration += force;
                 }

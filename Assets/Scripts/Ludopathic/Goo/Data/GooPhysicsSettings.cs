@@ -12,7 +12,7 @@ public class GooPhysicsSettings : ScriptableObject
     [Space]
     [Range(0.5f, 10.0f)]
     public float MaxSpringDistance = 4f;
-    [Range(0.0f, 100.0f)]
+    [Range(-100.0f, 100.0f)]
     public float SpringForce = 15f;
     [Range(0.0f, 1.0f)]//stubborness
     public float LinearFriction;
