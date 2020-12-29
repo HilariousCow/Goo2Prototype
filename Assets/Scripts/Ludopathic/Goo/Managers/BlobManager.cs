@@ -131,7 +131,7 @@ namespace Ludopathic.Goo.Managers
       //Job Handles (probably don't need to be members)
       //
       
-      private static int _GameFrame = 0;
+      private int _GameFrame = 0;
       private JobHandle _jobHandleResetBlobAccelerations;
       private JobHandle _jobHandleResetCursorAccelerations;
       private JobHandle _jobHandleResetGroupIDs;
@@ -544,27 +544,25 @@ namespace Ludopathic.Goo.Managers
          
          //_jobHandleResetJobs.Complete();
 
-         #region Graph Building
-         
         
-         #region KNN Tree Building
          //We need to copy values of positions over into the knn tree (one day we might be able to rule this out)
-         _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
-         _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
-
-         //now build the edges
-         JobHandle _graphSetup = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
-         #endregion
-        
-
-         #endregion // Graph Building
-         
-         
-         //todo require above jobs are complete in combo
-         
+       
          
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
-         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _graphSetup);
+
+         JobHandle _jobHandleQueryKNN;
+         if (_GameFrame == 0) //HACK: see what happens when we maintain the initial lattice
+         {
+            #region KNN Tree
+            _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
+            _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
+            //now query nearest neighbours
+            _jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
+            _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleQueryKNN);
+            #endregion
+         }
+       
+
          #region SimUpdateFrame
          //
          // Cursors must be done first. Luckily there's very few

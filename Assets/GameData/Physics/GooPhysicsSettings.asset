@@ -16,6 +16,6 @@ MonoBehaviour:
   MaxSpringDistance: 3
   SpringForce: 1
   LinearFriction: 0
-  ConstantFriction: 0.5
+  ConstantFriction: 1
   FluidInfluenceFalloffPower: 1
   FluidInfluenceModulator: 0
