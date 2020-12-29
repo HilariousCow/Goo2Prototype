@@ -37,12 +37,6 @@ namespace Ludopathic.Goo.Managers
       public float PetriDishRadius = 2f;
       public int NumTeams = 2;
       
-      //Eventually make obsolute (yes we want the knn tree!)
-      public bool bUseKNNTree = false;
-      
-      
-      
-      
       
       //
       // Persistent Entity Memroy
@@ -90,10 +84,7 @@ namespace Ludopathic.Goo.Managers
       private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
       private NativeArray<RangeQueryResult> _blobKNNNearestNeighbourQueryResults;
       
-      [Obsolete]
-      private NativeArray<BlobEdge> _blobEdges;
-      [Obsolete]
-      private NativeArray<int> _blobEdgeCount;
+   
       
       //
       //Job Data
@@ -109,12 +100,9 @@ namespace Ludopathic.Goo.Managers
       private KnnRebuildJob _jobBuildKnnTree;
       private QueryRangeBatchJob _jobDataQueryNearestNeighboursKNN;
       
-      
-      private JobFindNearestNeighboursNaive _jobDataQueryNearestNeighbours;
 
       private JobFloodFillIDs _jobDataFloodFillGroupIDs;
       private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
-      private JobSpringForce _jobDataSpringForcesNaive;
 
       private JobVelocityInfluenceFalloff _jobDataFluidInfluence;
       
@@ -148,8 +136,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleResetCursorAccelerations;
       private JobHandle _jobHandleResetGroupIDs;
       
-      [Obsolete("Replacing with KNNQueries")]
-      private JobHandle _jobHandleBuildEdges;
+   
       private JobHandle _jobHandleResetJobs;//combiner
       private JobHandle _jobCopy2DArrayTo3DArray;//TODO
 
@@ -271,9 +258,7 @@ namespace Ludopathic.Goo.Managers
      
          _knnContainer = new KnnContainer(_blobPositionsV3, false, Allocator.Persistent);
          
-         _blobEdges = new NativeArray<BlobEdge>(NUM_BLOBS * ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);//will become obsolete
-         _blobEdgeCount = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);//will become obsolete
-         
+    
          
          InitJobData();
       }
@@ -352,14 +337,7 @@ namespace Ludopathic.Goo.Managers
          #region Updates
          //build edges with existing positions
 
-         _jobDataQueryNearestNeighbours = new JobFindNearestNeighboursNaive
-         {
-            Positions = _blobPositions,
-            BlobEdges = _blobEdges,
-            BlobEdgeCount = _blobEdgeCount,
-            //MaxEdgeDistanceSq = MaxSpringDistance * MaxSpringDistance,
-            MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours
-         };
+       
 
 
          _jobDataFloodFillGroupIDs = new JobFloodFillIDs()
@@ -379,17 +357,6 @@ namespace Ludopathic.Goo.Managers
             SpringConstant = GooPhysics.SpringForce,
             Positions = _blobPositions,
             NumNearestNeighbours = GooPhysics.MaxNearestNeighbours
-         };
-
-         _jobDataSpringForcesNaive = new JobSpringForce()
-         {
-            Positions = _blobPositions,
-            BlobEdges = _blobEdges,
-            BlobEdgeCount = _blobEdgeCount,
-            MaxEdgesPerBlob =  GooPhysics.MaxNearestNeighbours,
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
-            SpringConstant = GooPhysics.SpringForce,
-            AccelerationAccumulator = _blobAccelerations
          };
 
          _jobDataFluidInfluence = new JobVelocityInfluenceFalloff
@@ -467,7 +434,7 @@ namespace Ludopathic.Goo.Managers
          {
             minVal = 0,
             maxVal = 10,
-            values = _blobEdgeCount,
+            values = _blobGroupIDs,
             colors = _blobColors,
          };
 
@@ -527,12 +494,8 @@ namespace Ludopathic.Goo.Managers
          _jobDataApplyFrictionToBlobs.DeltaTime = deltaTime;
          _jobDataUpdateBlobPositions.DeltaTime = deltaTime;
       
-         
          _jobDataApplyFrictionToBlobs.ConstantFriction = GooPhysics.ConstantFriction;
          _jobDataApplyFrictionToBlobs.LinearFriction = GooPhysics.ConstantFriction;
-         
-         _jobDataQueryNearestNeighbours.MaxEdgeDistanceSq = GooPhysics.MaxSpringDistance * GooPhysics.MaxSpringDistance;
-         _jobDataQueryNearestNeighbours.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
          
          _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
 
@@ -542,10 +505,6 @@ namespace Ludopathic.Goo.Managers
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          
-         _jobDataSpringForcesNaive.SpringConstant = GooPhysics.SpringForce;
-         _jobDataSpringForcesNaive.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
-         _jobDataSpringForcesNaive.MaxEdgesPerBlob = GooPhysics.MaxNearestNeighbours;
-
          _jobDataFluidInfluence.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
          _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
@@ -586,23 +545,16 @@ namespace Ludopathic.Goo.Managers
 
          #region Graph Building
          
-         JobHandle _graphSetup;
-         if (bUseKNNTree)
-         {
-            #region KNN Tree Building
-            //We need to copy values of positions over into the knn tree (one day we might be able to rule this out)
-            _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
-            _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
-            
-             //now build the edges
-             _graphSetup = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
-             #endregion
-         }
-         else
-         {
-            //This was the old way. (0)n^2
-            _graphSetup = _jobHandleBuildEdges = _jobDataQueryNearestNeighbours.Schedule(_blobPositions.Length, 64);
-         }
+        
+         #region KNN Tree Building
+         //We need to copy values of positions over into the knn tree (one day we might be able to rule this out)
+         _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
+         _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
+
+         //now build the edges
+         JobHandle _graphSetup = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
+         #endregion
+        
 
          #endregion // Graph Building
          
@@ -638,15 +590,10 @@ namespace Ludopathic.Goo.Managers
             
          
          //Do the below really rely on the group ids? Not yet, but we might find a reason for them to?
-         if (bUseKNNTree)
-         {
+       
              
-            _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleFloodFillGroupiID);
-         }
-         else
-         {
-            _jobHandleSpringForces = _jobDataSpringForcesNaive.Schedule(_blobAccelerations.Length, 64, _jobHandleFloodFillGroupiID);
-         }
+         _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleFloodFillGroupiID);
+       
 
          _jobHandleApplyBlobFriction = _jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
          _jobHandleFluidInfluences =  _jobDataFluidInfluence.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
@@ -665,9 +612,9 @@ namespace Ludopathic.Goo.Managers
          switch (DebugStyle)
          {
             case BlobColorDebugStyle.Edges:
-               jobHandleDebugColorization = bUseKNNTree ? 
-                  _jobDataDebugColorisationKNNLength.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleUpdateBlobPositions) :
-                  _jobDataDebugColorisationInt.Schedule(_blobEdgeCount.Length, 64, _jobHandleUpdateBlobPositions);
+               jobHandleDebugColorization =
+                  _jobDataDebugColorisationKNNLength.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleUpdateBlobPositions);
+                 
                break;
             case BlobColorDebugStyle.Velocity:
                jobHandleDebugColorization =
@@ -691,22 +638,17 @@ namespace Ludopathic.Goo.Managers
          _jobHandleCopyBlobsToParticleSystem = _jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, jobHandleDebugColorization);
          _jobHandleCopyCursorsToTransforms = _jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCursorsInfluenceBlobs);
          
-         
          _jobHandleCopyBlobsToParticleSystem.Complete();
          _jobHandleCopyCursorsToTransforms.Complete();
 
          _jobHandleBuildAABB = _jobDataMoveCameraToFitPoints.Schedule(_cameraTransformAccessArray,   _jobHandleUpdateBlobPositions);
          _jobHandleBuildAABB.Complete();
-
-
+         
          #endregion // Job Kickoff and Dependancy
-
 
          //No. You must call "complete" on any handle that has something dependant on it. Which is all of them, you'd expect.
          //maybe i only need to complete the last, since that's dependant.
       }
-
-  
 
       public Gradient EdgeBlobGradient;
       private void LateUpdate()
@@ -732,10 +674,6 @@ namespace Ludopathic.Goo.Managers
          switch (DebugStyle)
          {
             case BlobColorDebugStyle.Edges:
-               _jobDataDebugColorisationInt.minVal = 0;
-               _jobDataDebugColorisationInt.maxVal = GooPhysics.MaxNearestNeighbours;
-               _jobDataDebugColorisationInt.values = _blobEdgeCount;//based on whether knn trees are used or not. easy way to get at query results length for knn?
-               
                _jobDataDebugColorisationKNNLength.minVal = 0;
                _jobDataDebugColorisationKNNLength.maxVal = GooPhysics.MaxNearestNeighbours;
                _jobDataDebugColorisationKNNLength.values = _blobKNNNearestNeighbourQueryResults;
@@ -786,11 +724,10 @@ namespace Ludopathic.Goo.Managers
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
          if(_blobGroupIDs.IsCreated) _blobGroupIDs.Dispose();
-         if (_numGroups.IsCreated) _numGroups.Dispose();
-         if (_floodQueue.IsCreated) _floodQueue.Dispose();
+         if(_numGroups.IsCreated) _numGroups.Dispose();
+         if(_floodQueue.IsCreated) _floodQueue.Dispose();
          if(_blobColors.IsCreated) _blobColors.Dispose();
-         if(_blobEdges.IsCreated) _blobEdges.Dispose();
-         if(_blobEdgeCount.IsCreated) _blobEdgeCount.Dispose();
+       
          
          _knnContainer.Dispose();
          foreach (var result in _blobKNNNearestNeighbourQueryResults) {
