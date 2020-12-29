@@ -249,24 +249,13 @@ namespace Ludopathic.Goo.Jobs
         public void Execute(int index)
         {
             
-            //Approximate Force equation:
-            //
-            //
-            //((k - 2x)^2-0.5) * (1-x^2)
-
-            const float f = 2.0f;
-            const float l = 1.9f;
-            const float k = 1.2f;
-            
-            
-            
+         
             float2 thisBlobsPosition = Positions[index];
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
             int numBlobEdges = oneBlobsNearestNeighbours.Length;
 
-            if (numBlobEdges == 0)
+            if (numBlobEdges == 1)
             {
-                AccelerationAccumulator[index] += new float2(0f,1f);//i bet this never happens
                 return;
             }
             int numBlobsToSample = math.min(numBlobEdges, NumNearestNeighbours);
@@ -274,7 +263,7 @@ namespace Ludopathic.Goo.Jobs
             //for each nearby blob
 
             float2 accumulateAcceleration = float2.zero;
-            for (int j = 0; j < numBlobsToSample; j++)
+            for (int j = 1; j < numBlobsToSample; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
                 
@@ -285,23 +274,21 @@ namespace Ludopathic.Goo.Jobs
                 
                 float deltaDistSq = math.lengthsq(delta);
                 
-               // if(deltaDistSq > MaxEdgeDistanceSq) continue;//ignore out of range boys. They shouldn't be here
-                
-                //simple spring force at first
-                
-              
-
                 if (deltaDistSq > 0.0)
                 {
                     float deltaDist = math.length(delta);//pos b is the origin of the spring
                     float2 dir = -math.normalize(delta);
+
+                    float frac = deltaDist / MaxEdgeDistanceRaw;
                     
-                    float frac =  deltaDist / MaxEdgeDistanceRaw;
+                    float modulate = math.clamp(1.0f - frac, 0.1f, 1f);
+                        
                     frac *= frac;
                     float springForce = (-0.5f + frac) * 2.0f;
                     
-                    float2 force = springForce * dir * SpringConstant ;
-
+                    
+                    
+                    float2 force =-modulate * springForce * dir * SpringConstant;
                     accumulateAcceleration += force;
                 }
             }
