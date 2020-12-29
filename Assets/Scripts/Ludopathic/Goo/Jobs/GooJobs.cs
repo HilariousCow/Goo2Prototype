@@ -400,8 +400,12 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public int NumNearestNeighbours;
         
+        //read and write
         public NativeArray<int> GroupIDs;
         public NativeQueue<int> FloodQueue;
+
+        [WriteOnly]
+        public NativeArray<int> NumGroups;
         
         public void Execute()
         {
@@ -425,8 +429,9 @@ namespace Ludopathic.Goo.Jobs
                 }
                 id++;
             }
-           
-           
+
+            //simple number of groups output
+            NumGroups[0] = id;
         }
 
         private void Fill(int index, int id, ref NativeQueue<int> queue)

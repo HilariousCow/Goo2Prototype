@@ -80,6 +80,8 @@ namespace Ludopathic.Goo.Managers
       private NativeArray<float3> _blobPositionsV3;
 
       private NativeQueue<int> _floodQueue;
+      private NativeArray<int> _numGroups;//Just an output. Can't get output without that native rapper!
+      
       public Bounds OverallGooBounds;
       
       
@@ -178,7 +180,8 @@ namespace Ludopathic.Goo.Managers
          Edges,
          Velocity,
          Acceleration,
-         TeamID
+         TeamID,
+         GroupID
       }
 
       
@@ -238,6 +241,7 @@ namespace Ludopathic.Goo.Managers
          _blobAccelerations = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobTeamIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          _blobGroupIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
+         _numGroups = new NativeArray<int>(1, Allocator.Persistent);
          _floodQueue = new NativeQueue<int>(Allocator.Persistent);
          _blobColors = new NativeArray<Color>(NUM_BLOBS, Allocator.Persistent);
          _blobPositionsV3 = new NativeArray<float3>(NUM_BLOBS, Allocator.Persistent);
@@ -363,7 +367,8 @@ namespace Ludopathic.Goo.Managers
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             GroupIDs = _blobGroupIDs,
             NumNearestNeighbours = GooPhysics.MaxNearestNeighbours,
-            FloodQueue = _floodQueue
+            FloodQueue = _floodQueue,
+            NumGroups = _numGroups //for safety.don't want divide by zero
          };
          
          _jobSpringForcesUsingKnn = new JobSpringForceUsingKNNResults()
@@ -676,6 +681,10 @@ namespace Ludopathic.Goo.Managers
                jobHandleDebugColorization =
                   _jobDataDebugColorisationInt.Schedule(_blobTeamIDs.Length, 64, _jobHandleUpdateBlobPositions);
                break;
+            case BlobColorDebugStyle.GroupID:
+               jobHandleDebugColorization =
+                  _jobDataDebugColorisationInt.Schedule(_blobGroupIDs.Length, 64, _jobHandleUpdateBlobPositions);
+               break;
             default:
                throw new ArgumentOutOfRangeException();
          }
@@ -744,6 +753,11 @@ namespace Ludopathic.Goo.Managers
                _jobDataDebugColorisationInt.maxVal = 5;
                _jobDataDebugColorisationInt.values = _blobTeamIDs;
                break;
+            case BlobColorDebugStyle.GroupID:
+               _jobDataDebugColorisationInt.minVal = 0;
+               _jobDataDebugColorisationInt.maxVal = _numGroups[0];//funky, but it's the only way to get an int out of the job
+               _jobDataDebugColorisationInt.values = _blobGroupIDs;
+               break;
             default:
                throw new ArgumentOutOfRangeException();
          }
@@ -772,6 +786,7 @@ namespace Ludopathic.Goo.Managers
          if(_blobAccelerations.IsCreated) _blobAccelerations.Dispose();
          if(_blobTeamIDs.IsCreated) _blobTeamIDs.Dispose();
          if(_blobGroupIDs.IsCreated) _blobGroupIDs.Dispose();
+         if (_numGroups.IsCreated) _numGroups.Dispose();
          if (_floodQueue.IsCreated) _floodQueue.Dispose();
          if(_blobColors.IsCreated) _blobColors.Dispose();
          if(_blobEdges.IsCreated) _blobEdges.Dispose();
