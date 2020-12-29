@@ -416,16 +416,12 @@ namespace Ludopathic.Goo.Jobs
             {
                 if (GroupIDs[i] < 0)
                 {
-                   
-
                     Fill(i, id, ref FloodQueue);
                     while (!FloodQueue.IsEmpty())
                     {
-                        int neighbourID = FloodQueue.Dequeue();
-                        Fill(i, id,ref FloodQueue);
+                        int neighbourIndex = FloodQueue.Dequeue();
+                        Fill(neighbourIndex, id, ref FloodQueue);
                     }
-
-                
                 }
                 id++;
             }

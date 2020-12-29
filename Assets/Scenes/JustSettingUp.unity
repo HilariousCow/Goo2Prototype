@@ -5188,7 +5188,7 @@ MonoBehaviour:
   OverallGooBounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}
-  DebugStyle: 0
+  DebugStyle: 4
   EdgeBlobGradient:
     serializedVersion: 2
     key0: {r: 1, g: 0, b: 0, a: 1}
