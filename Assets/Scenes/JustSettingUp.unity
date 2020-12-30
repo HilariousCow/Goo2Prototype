@@ -5176,14 +5176,15 @@ MonoBehaviour:
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
   BlobParticleSystemOutput: {fileID: 491226625}
   CameraTransform: {fileID: 941502024}
+  DynamicallyUpdateNearestNeighbours: 0
   CursorRadius: 20
   CursorAccel: 100
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
   GooPhysics: {fileID: 11400000, guid: fd2f8aa2eda7f324f8c9231ee550d9c0, type: 2}
-  PetriDishRadius: 2
+  PetriDishRadius: 20
   NumTeams: 1
-  NUM_BLOBS: 16
+  NUM_BLOBS: 1000
   OverallGooBounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}

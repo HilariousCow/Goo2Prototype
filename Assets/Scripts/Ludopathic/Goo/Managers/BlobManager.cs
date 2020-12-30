@@ -22,7 +22,10 @@ namespace Ludopathic.Goo.Managers
       public ParticleSystem BlobParticleSystemOutput;
 
       public Camera CameraTransform;
-      
+
+      [Space]
+      public bool DynamicallyUpdateNearestNeighbours;
+      [Space]
       //Gameplay properties
       public float CursorRadius = 10.0f;
       public float CursorAccel = 5.0f;
@@ -63,7 +66,7 @@ namespace Ludopathic.Goo.Managers
       
       public int NUM_BLOBS = 1000;
       
-      //Blob Properties.
+      //Goo/Blob Properties.
       private NativeArray<int> _blobTeamIDs;
       private NativeArray<int> _blobGroupIDs;
       private NativeArray<float2> _blobAccelerations;
@@ -75,6 +78,8 @@ namespace Ludopathic.Goo.Managers
 
       private NativeQueue<int> _floodQueue;
       private NativeArray<int> _numGroups;//Just an output. Can't get output without that native rapper!
+      private NativeArray<Bounds> _overallGooBounds;
+      
       
       public Bounds OverallGooBounds;
       
@@ -232,7 +237,8 @@ namespace Ludopathic.Goo.Managers
          _floodQueue = new NativeQueue<int>(Allocator.Persistent);
          _blobColors = new NativeArray<Color>(NUM_BLOBS, Allocator.Persistent);
          _blobPositionsV3 = new NativeArray<float3>(NUM_BLOBS, Allocator.Persistent);
-         
+         _overallGooBounds = new NativeArray<Bounds>(1, Allocator.Persistent);
+         _overallGooBounds[0] = OverallGooBounds;
          
          //copy init values into scratch data
          for (int index = 0; index < NUM_BLOBS; index++)
@@ -357,6 +363,7 @@ namespace Ludopathic.Goo.Managers
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
             SpringConstant = GooPhysics.SpringForce,
             Positions = _blobPositions,
+            Velocity = _blobVelocities,
             NumNearestNeighbours = GooPhysics.MaxNearestNeighbours
          };
 
@@ -478,7 +485,8 @@ namespace Ludopathic.Goo.Managers
       #region BoundsForCamera
       _jobDataMoveCameraToFitPoints = new JobMoveCameraToFitPoints()
       {
-         Positions = _blobPositions
+         Positions = _blobPositions,
+         Bounds = _overallGooBounds
       };
       #endregion // BoundsForCamera
       #endregion // Updates
@@ -551,7 +559,7 @@ namespace Ludopathic.Goo.Managers
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
 
          JobHandle _jobHandleQueryKNN;
-         if (_GameFrame == 0) //HACK: see what happens when we maintain the initial lattice
+         if (_GameFrame == 0 || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
          {
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
@@ -662,8 +670,8 @@ namespace Ludopathic.Goo.Managers
 
          CameraTransform.nearClipPlane = CameraTransform.transform.position.y *0.9f;
          CameraTransform.farClipPlane = CameraTransform.transform.position.y *1.1f;
-         
-         
+
+         OverallGooBounds = _overallGooBounds[0];//job data will have changed this.
       }
 
       //slow assed. Can jobify

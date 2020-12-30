@@ -233,6 +233,9 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public NativeArray<float2> Positions;
         
+        [ReadOnly]
+        public NativeArray<float2> Velocity;//used to figure out counter spring force.
+        
         //read and write
         public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
 
@@ -248,9 +251,8 @@ namespace Ludopathic.Goo.Jobs
         //for each blob
         public void Execute(int index)
         {
-            
-         
             float2 thisBlobsPosition = Positions[index];
+            
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
             int numBlobEdges = oneBlobsNearestNeighbours.Length;
 
@@ -262,35 +264,45 @@ namespace Ludopathic.Goo.Jobs
             //float MaxEdgeDistanceSq = MaxEdgeDistanceRaw * MaxEdgeDistanceRaw;
             //for each nearby blob
 
+            float2 thisBlobVelocity = Velocity[index];
             float2 accumulateAcceleration = float2.zero;
             for (int j = 1; j < numBlobsToSample; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
                 
                 if(indexOfOtherBlob == index) continue;
+                float2 otherBlobPos = Positions[indexOfOtherBlob];
+                float2 delta = otherBlobPos - thisBlobsPosition;
+                //float deltaDistSq = math.lengthsq(delta);
+                //maybe skip out if delta dist is small? Ideally something deals with it. Perhaps a pass where we de-penetrate all blobs until there are no more blobs overlapping, using a stack of paired blobs.
+               
+                float2 otherBlobVel = Velocity[indexOfOtherBlob];
+                float2 velocityDelta = otherBlobVel - thisBlobVelocity;
                 
-                float2 posB = Positions[indexOfOtherBlob];
-                float2 delta = thisBlobsPosition - posB;
+               
                 
-                float deltaDistSq = math.lengthsq(delta);
-                
-                if (deltaDistSq > 0.0)
-                {
-                    float deltaDist = math.length(delta);//pos b is the origin of the spring
-                    float2 dir = -math.normalize(delta);
+                float deltaDist = math.length(delta);//pos b is the origin of the spring
+                float2 dir = math.normalize(delta);
 
-                    float frac = deltaDist / MaxEdgeDistanceRaw;
+                float speedAlongSpring = math.dot(dir, velocityDelta);
+                
+               // float2 crossDir =  new float2(dir.y, -dir.x);//to stop twisting
+             //   float speedAcrossSpring = math.dot(crossDir, velocityDelta);
                     
-                    float modulate = math.clamp(1.0f - frac, 0.1f, 1f);
-                        
-                    frac *= frac;
-                    float springForce = (-0.5f + frac) * 2.0f;
-                    
-                    
-                    
-                    float2 force =-modulate * springForce * dir * SpringConstant;
-                    accumulateAcceleration += force;
-                }
+                float frac = deltaDist / MaxEdgeDistanceRaw;
+
+                float targetFrac = 0.5f;
+                float distanceFromTarget = (frac-targetFrac) * 2.0f;//just position based.
+
+                float constantForce = distanceFromTarget * SpringConstant;
+                float pullBackForce = 0.0f;//distanceFromTarget * -speedAlongSpring * 0.016f;
+                
+
+                float2 forceAlongSpring = (pullBackForce + constantForce) * dir;  
+              //float2 forceAcrossSpring = 
+
+              accumulateAcceleration += forceAlongSpring ;
+                
             }
 
             AccelerationAccumulator[index] += accumulateAcceleration;
@@ -638,12 +650,16 @@ namespace Ludopathic.Goo.Jobs
         
         [ReadOnly]
         public NativeArray<float2> Positions;
-     
+
+        
+        public NativeArray<Bounds> Bounds;//singleton just for reading
         public void Execute(int index, TransformAccess transform)
         {
             float2 min = new float2(float.MaxValue, float.MaxValue);
             float2 max = new float2(float.MinValue, float.MinValue);
 
+           
+            
             for (int i = 0; i < Positions.Length; i++)
             {
                 float2 pos = Positions[i];
@@ -653,9 +669,14 @@ namespace Ludopathic.Goo.Jobs
                 if (pos.y < min.y) min.y = pos.y;
             }
 
+            Bounds bounds = new Bounds();
+            bounds.min = new Vector3(min.x, 0.0f, min.y);
+            bounds.max = new Vector3(min.x, 0.0f, min.y);
+            Bounds[0] = bounds;
+            
             float2 center = math.lerp(min, max, 0.5f);
             float size = math.distance(min, max);
-            transform.position = new Vector3(center.x, size*1.6f, center.y);
+            transform.position = new Vector3(center.x, size*2.6f, center.y);
             
             transform.rotation = Quaternion.LookRotation(-transform.position, Vector3.forward);
             //todo: look at center
