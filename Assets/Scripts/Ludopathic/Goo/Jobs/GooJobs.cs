@@ -645,7 +645,7 @@ namespace Ludopathic.Goo.Jobs
     
     //TODO: vis that shows 2ds as separate axes.
     [BurstCompile]
-    public struct JobMoveCameraToFitPoints : IJobParallelForTransform
+    public struct JobCalculateAABB : IJobParallelForTransform
     {
         
         [ReadOnly]
@@ -671,15 +671,9 @@ namespace Ludopathic.Goo.Jobs
 
             Bounds bounds = new Bounds();
             bounds.min = new Vector3(min.x, 0.0f, min.y);
-            bounds.max = new Vector3(min.x, 0.0f, min.y);
+            bounds.max = new Vector3(max.x, 0.0f, max.y);
             Bounds[0] = bounds;
             
-            float2 center = math.lerp(min, max, 0.5f);
-            float size = math.distance(min, max);
-            transform.position = new Vector3(center.x, size*2.6f, center.y);
-            
-            transform.rotation = Quaternion.LookRotation(-transform.position, Vector3.forward);
-            //todo: look at center
         }
     }
     

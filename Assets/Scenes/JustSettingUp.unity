@@ -5040,6 +5040,7 @@ GameObject:
   - component: {fileID: 941502024}
   - component: {fileID: 941502023}
   - component: {fileID: 941502022}
+  - component: {fileID: 941502026}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -5143,6 +5144,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &941502026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941502021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f6f24b10eb57344cb1fdd59c978b78a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BlobManager: {fileID: 1007287158}
 --- !u!1 &1007287157
 GameObject:
   m_ObjectHideFlags: 0
@@ -5176,15 +5190,15 @@ MonoBehaviour:
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
   BlobParticleSystemOutput: {fileID: 491226625}
   CameraTransform: {fileID: 941502024}
-  DynamicallyUpdateNearestNeighbours: 0
-  CursorRadius: 20
+  DynamicallyUpdateNearestNeighbours: 1
+  CursorRadius: 0.5
   CursorAccel: 100
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
   GooPhysics: {fileID: 11400000, guid: fd2f8aa2eda7f324f8c9231ee550d9c0, type: 2}
-  PetriDishRadius: 20
+  PetriDishRadius: 2
   NumTeams: 1
-  NUM_BLOBS: 1000
+  NUM_BLOBS: 7
   OverallGooBounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}

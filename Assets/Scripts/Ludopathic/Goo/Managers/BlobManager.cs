@@ -130,7 +130,7 @@ namespace Ludopathic.Goo.Managers
       private JopCopyBlobsToParticleSystem _jobDataCopyBlobsToParticleSystem;
       private JobCopyBlobsToTransforms _jobDataCopyCursorsToTransforms;
 
-      private JobMoveCameraToFitPoints _jobDataMoveCameraToFitPoints;
+      private JobCalculateAABB _jobDataCalculateAABB;
       
       //
       //Job Handles (probably don't need to be members)
@@ -483,7 +483,7 @@ namespace Ludopathic.Goo.Managers
 
 
       #region BoundsForCamera
-      _jobDataMoveCameraToFitPoints = new JobMoveCameraToFitPoints()
+      _jobDataCalculateAABB = new JobCalculateAABB()
       {
          Positions = _blobPositions,
          Bounds = _overallGooBounds
@@ -642,13 +642,15 @@ namespace Ludopathic.Goo.Managers
             default:
                throw new ArgumentOutOfRangeException();
          }
+         
+         
          _jobHandleCopyBlobsToParticleSystem = _jobDataCopyBlobsToParticleSystem.ScheduleBatch(BlobParticleSystemOutput, 64, jobHandleDebugColorization);
          _jobHandleCopyCursorsToTransforms = _jobDataCopyCursorsToTransforms.Schedule(_cursorTransformAccessArray, _jobHandleCursorsInfluenceBlobs);
          
          _jobHandleCopyBlobsToParticleSystem.Complete();
          _jobHandleCopyCursorsToTransforms.Complete();
 
-         _jobHandleBuildAABB = _jobDataMoveCameraToFitPoints.Schedule(_cameraTransformAccessArray,   _jobHandleUpdateBlobPositions);
+         _jobHandleBuildAABB = _jobDataCalculateAABB.Schedule(_cameraTransformAccessArray,   _jobHandleUpdateBlobPositions);
          _jobHandleBuildAABB.Complete();
          
          #endregion // Job Kickoff and Dependancy
@@ -668,9 +670,7 @@ namespace Ludopathic.Goo.Managers
          //also, looks like you can complete this in late update.
          //also, you only have to complete the job of last job in a chain.
 
-         CameraTransform.nearClipPlane = CameraTransform.transform.position.y *0.9f;
-         CameraTransform.farClipPlane = CameraTransform.transform.position.y *1.1f;
-
+      
          OverallGooBounds = _overallGooBounds[0];//job data will have changed this.
       }
 
