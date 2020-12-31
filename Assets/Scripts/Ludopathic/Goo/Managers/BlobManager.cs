@@ -25,6 +25,8 @@ namespace Ludopathic.Goo.Managers
 
       [Space]
       public bool DynamicallyUpdateNearestNeighbours;
+
+      private bool bNearestNeighboursDirty = true;
       [Space]
       //Gameplay properties
       public float CursorRadius = 10.0f;
@@ -39,7 +41,7 @@ namespace Ludopathic.Goo.Managers
       [Space]
       public float PetriDishRadius = 2f;
       public int NumTeams = 2;
-      
+      public int NUM_BLOBS = 1000;
       
       //
       // Persistent Entity Memroy
@@ -59,11 +61,7 @@ namespace Ludopathic.Goo.Managers
       private Transform[] _cursorOutputTransforms;
       private TransformAccessArray _cursorTransformAccessArray;
       
-      
-      
-      
-      
-      public int NUM_BLOBS = 1000;
+    
       
       //Goo/Blob Properties.
       private NativeArray<int> _blobTeamIDs;
@@ -375,7 +373,6 @@ namespace Ludopathic.Goo.Managers
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
 
             InfluenceRadius = GooPhysics.MaxSpringDistance,
-            InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower,
             InfluenceModulator =  GooPhysics.FluidInfluenceModulator
          };
 
@@ -511,6 +508,7 @@ namespace Ludopathic.Goo.Managers
 
          if (needsReallocation)
          {
+            Debug.Log("Reallocating knn queries: " + GooPhysics.MaxNearestNeighbours);
             for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i)
             {
                _blobKNNNearestNeighbourQueryResults[i].Dispose();
@@ -521,12 +519,23 @@ namespace Ludopathic.Goo.Managers
                _blobKNNNearestNeighbourQueryResults[i] =
                   new RangeQueryResult(GooPhysics.MaxNearestNeighbours, Allocator.Persistent);
             }
+
+            //re assign?
+            
+            //nah, don't need to but do need to dirty the search
+
+            bNearestNeighboursDirty = true;
+            /*_jobDataDebugColorisationKNNLength.values = _blobKNNNearestNeighbourQueryResults;
+            _jobDataQueryNearestNeighboursKNN.Results = _blobKNNNearestNeighbourQueryResults;
+            _jobDataFloodFillGroupIDs. BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults;
+            _jobSpringForcesUsingKnn.BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults;
+            _jobDataFluidInfluence.BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults;*/
+            
          }
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
-         _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
 
        
@@ -569,7 +578,7 @@ namespace Ludopathic.Goo.Managers
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
 
          JobHandle _jobHandleQueryKNN;
-         if (_GameFrame == 0 || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
+         if (bNearestNeighboursDirty || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
          {
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
@@ -578,6 +587,8 @@ namespace Ludopathic.Goo.Managers
             _jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
             _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleQueryKNN);
             #endregion
+            
+            bNearestNeighboursDirty = false;
          }
        
 

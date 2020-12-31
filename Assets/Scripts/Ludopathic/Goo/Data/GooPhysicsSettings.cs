@@ -20,8 +20,7 @@ public class GooPhysicsSettings : ScriptableObject
     public float ConstantFriction;
     
     [Space]
-    [Range(0.01f, 40.0f)]
-    public float FluidInfluenceFalloffPower = 2.0f;
+  
     [Range(-1.0f, 1.0f)]
     public float FluidInfluenceModulator = 0.5f;
 }

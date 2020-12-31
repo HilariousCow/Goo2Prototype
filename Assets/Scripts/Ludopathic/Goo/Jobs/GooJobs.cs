@@ -124,8 +124,7 @@ namespace Ludopathic.Goo.Jobs
         public float InfluenceModulator;
         [ReadOnly]
         public float InfluenceRadius;
-        [ReadOnly]
-        public float InfluenceFalloff;
+   
         
         //For each blob
         //Add force based on a nearby blob's velocity.
