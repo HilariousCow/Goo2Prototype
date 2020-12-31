@@ -5191,14 +5191,14 @@ MonoBehaviour:
   BlobParticleSystemOutput: {fileID: 491226625}
   CameraTransform: {fileID: 941502024}
   DynamicallyUpdateNearestNeighbours: 1
-  CursorRadius: 5
+  CursorRadius: 0.5
   CursorAccel: 100
   CursorLinearFriction: 0.9
   CursorConstantFriction: 50
   GooPhysics: {fileID: 11400000, guid: fd2f8aa2eda7f324f8c9231ee550d9c0, type: 2}
-  PetriDishRadius: 50
+  PetriDishRadius: 3
   NumTeams: 1
-  NUM_BLOBS: 1000
+  NUM_BLOBS: 3
   OverallGooBounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}

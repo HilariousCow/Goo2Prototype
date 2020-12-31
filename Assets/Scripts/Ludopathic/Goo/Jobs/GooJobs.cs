@@ -258,20 +258,33 @@ namespace Ludopathic.Goo.Jobs
 
             if (numBlobEdges == 1)
             {
-                return;
+                
+             //   return;
             }
+            
+            
             int numBlobsToSample = math.min(numBlobEdges, NumNearestNeighbours);
+            
+            
+         //   Debug.Log($"index a:{index}, has num neighbours:{numBlobEdges}. Num to sample: {numBlobsToSample}");
+            
+            
             //float MaxEdgeDistanceSq = MaxEdgeDistanceRaw * MaxEdgeDistanceRaw;
             //for each nearby blob
 
             float2 thisBlobVelocity = Velocity[index];
             float2 accumulateAcceleration = float2.zero;
-            for (int j = 1; j < numBlobsToSample; j++)
+            
+            
+            Vector3 pos = new Vector3(thisBlobsPosition.x, 0.0f, thisBlobsPosition.y);//debug only
+            for (int j = 0; j < numBlobsToSample; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
                 
                 if(indexOfOtherBlob == index) continue;
                 float2 otherBlobPos = Positions[indexOfOtherBlob];
+                Vector3 otherPos = new Vector3(otherBlobPos.x, 0.0f, otherBlobPos.y);//debug only
+                
                 float2 delta = otherBlobPos - thisBlobsPosition;
                 //float deltaDistSq = math.lengthsq(delta);
                 //maybe skip out if delta dist is small? Ideally something deals with it. Perhaps a pass where we de-penetrate all blobs until there are no more blobs overlapping, using a stack of paired blobs.
@@ -280,7 +293,6 @@ namespace Ludopathic.Goo.Jobs
                 float2 velocityDelta = otherBlobVel - thisBlobVelocity;
                 
                
-                
                 float deltaDist = math.length(delta);//pos b is the origin of the spring
                 float2 dir = math.normalize(delta);
 
@@ -296,7 +308,7 @@ namespace Ludopathic.Goo.Jobs
 
                 float invFrac = math.clamp( 1.0f - frac, 0.0f, 1.0f);
                 float falloff = invFrac * invFrac;
-                
+                falloff = 1.0f;
                 float constantForce = distanceFromTarget * SpringConstant;
                 float pullBackForce = distanceFromTarget * speedAlongSpring * 0.5f;
                 
@@ -304,10 +316,15 @@ namespace Ludopathic.Goo.Jobs
                 float2 forceAlongSpring = (pullBackForce + constantForce) * dir * falloff;  
               //float2 forceAcrossSpring = 
 
-              accumulateAcceleration += forceAlongSpring ;
+                accumulateAcceleration += forceAlongSpring ;
                 
+          //      Debug.Log($"index a:{index}, index b:{indexOfOtherBlob}");
+           //     Debug.DrawLine(pos, otherPos, Color.Lerp(Color.green, Color.red, frac));
             }
 
+            
+         //   Vector3 accelOffset = new Vector3(accumulateAcceleration.x, 0.0f, accumulateAcceleration.y);
+        //    Debug.DrawLine(pos, pos + accelOffset);
             AccelerationAccumulator[index] += accumulateAcceleration;
         }
     }
