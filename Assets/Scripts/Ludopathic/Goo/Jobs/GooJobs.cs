@@ -645,15 +645,14 @@ namespace Ludopathic.Goo.Jobs
     
     //TODO: vis that shows 2ds as separate axes.
     [BurstCompile]
-    public struct JobCalculateAABB : IJobParallelForTransform
+    public struct JobCalculateAABB : IJob
     {
-        
         [ReadOnly]
         public NativeArray<float2> Positions;
 
         
         public NativeArray<Bounds> Bounds;//singleton just for reading
-        public void Execute(int index, TransformAccess transform)
+        public void Execute()
         {
             float2 min = new float2(float.MaxValue, float.MaxValue);
             float2 max = new float2(float.MinValue, float.MinValue);

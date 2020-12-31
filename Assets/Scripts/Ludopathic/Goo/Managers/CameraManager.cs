@@ -24,18 +24,28 @@ namespace Ludopathic.Goo.Managers
         void LateUpdate()
         {
 
-            _transform.position = BlobManager.OverallGooBounds.center + (Vector3.up * (BlobManager.OverallGooBounds.size.magnitude * 2.6f));
-            _transform.rotation = Quaternion.LookRotation( BlobManager.OverallGooBounds.center-transform.position, Vector3.forward);
+
+            Bounds bounds = BlobManager.OverallGooBounds;
+          
+
+            float screenRatio = Screen.width / (float)Screen.height;
+            float largerSide = Mathf.Max(bounds.size.x, bounds.size.z * screenRatio);
+
+            float heightAbove = Mathf.Atan(_camera.fieldOfView) * largerSide ;
+            
+            _transform.position = bounds.center + Vector3.up * heightAbove;
+            _transform.rotation = Quaternion.LookRotation( bounds.center-transform.position, Vector3.forward);
 
 
-            Vector3 near = BlobManager.OverallGooBounds.ClosestPoint(_transform.position);
-            Vector3 far = BlobManager.OverallGooBounds.center - (near - BlobManager.OverallGooBounds.center);
+            bounds.Encapsulate(Vector3.down);
+            Vector3 near = bounds.ClosestPoint(_transform.position);
+            Vector3 far = bounds.center - (near - bounds.center);
 
 
             float nearPos = Vector3.Dot((near - transform.position), _transform.forward);
             float farPos = Vector3.Dot((far - transform.position), _transform.forward);
 
-            _camera.nearClipPlane = Mathf.Min(nearPos, farPos)-1f;
+            _camera.nearClipPlane =  Mathf.Min(nearPos, farPos)-1f;
             _camera.farClipPlane =  Mathf.Max(nearPos, farPos)+1f;
 
             
@@ -46,6 +56,7 @@ namespace Ludopathic.Goo.Managers
         {
             // Draw a yellow cube at the transform position
             Gizmos.color = Color.yellow;
+            Gizmos.matrix = Matrix4x4.identity;
             Gizmos.DrawWireCube(BlobManager.OverallGooBounds.center, BlobManager.OverallGooBounds.size);
         }
         

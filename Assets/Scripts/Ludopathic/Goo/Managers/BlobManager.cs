@@ -59,7 +59,6 @@ namespace Ludopathic.Goo.Managers
       private Transform[] _cursorOutputTransforms;
       private TransformAccessArray _cursorTransformAccessArray;
       
-      private TransformAccessArray _cameraTransformAccessArray;
       
       
       
@@ -215,7 +214,6 @@ namespace Ludopathic.Goo.Managers
          }
          _cursorTransformAccessArray = new TransformAccessArray(_cursorOutputTransforms);
 
-         _cameraTransformAccessArray = new TransformAccessArray( new Transform[]{ CameraTransform.transform });
          InitBlobData(NUM_BLOBS, BlobParticleSystemOutput);
 
       }
@@ -650,7 +648,7 @@ namespace Ludopathic.Goo.Managers
          _jobHandleCopyBlobsToParticleSystem.Complete();
          _jobHandleCopyCursorsToTransforms.Complete();
 
-         _jobHandleBuildAABB = _jobDataCalculateAABB.Schedule(_cameraTransformAccessArray,   _jobHandleUpdateBlobPositions);
+         _jobHandleBuildAABB = _jobDataCalculateAABB.Schedule(   _jobHandleUpdateBlobPositions);
          _jobHandleBuildAABB.Complete();
          
          #endregion // Job Kickoff and Dependancy
