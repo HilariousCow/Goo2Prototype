@@ -87,7 +87,7 @@ namespace KNN.Jobs {
 		public int Length;
 
 		int* m_indices;
-		int m_capacity;
+		public int m_capacity { get; private set; }
 
 		Allocator m_allocator;
 

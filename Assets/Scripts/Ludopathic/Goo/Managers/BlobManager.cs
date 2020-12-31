@@ -85,7 +85,7 @@ namespace Ludopathic.Goo.Managers
       
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
-      private const int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
+      private int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
       private NativeArray<RangeQueryResult> _blobKNNNearestNeighbourQueryResults;
       
    
@@ -280,6 +280,8 @@ namespace Ludopathic.Goo.Managers
          //_jobDataEncapsulateAABB.AABBBounds = OverallGooBounds;
          
          
+         
+         
          UpdateSimulation(Mathf.Min(1f/60f, Time.deltaTime) );
          _GameFrame++;
       }
@@ -324,9 +326,11 @@ namespace Ludopathic.Goo.Managers
          _blobKNNNearestNeighbourQueryResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
 
          // Each range query result object needs to declare upfront what the maximum number of points in range is
+         
+         
          for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i) 
          {
-            _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
+            _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(GooPhysics.MaxNearestNeighbours, Allocator.Persistent);
          }
 
          
@@ -349,7 +353,6 @@ namespace Ludopathic.Goo.Managers
          {
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             GroupIDs = _blobGroupIDs,
-            NumNearestNeighbours = GooPhysics.MaxNearestNeighbours,
             FloodQueue = _floodQueue,
             NumGroups = _numGroups //for safety.don't want divide by zero
          };
@@ -362,7 +365,6 @@ namespace Ludopathic.Goo.Managers
             SpringConstant = GooPhysics.SpringForce,
             Positions = _blobPositions,
             Velocity = _blobVelocities,
-            NumNearestNeighbours = GooPhysics.MaxNearestNeighbours
          };
 
          _jobDataFluidInfluence = new JobVelocityInfluenceFalloff
@@ -372,7 +374,6 @@ namespace Ludopathic.Goo.Managers
             BlobAccelAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
 
-            NumNearestNeighbours = GooPhysics.MaxNearestNeighbours,
             InfluenceRadius = GooPhysics.MaxSpringDistance,
             InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower,
             InfluenceModulator =  GooPhysics.FluidInfluenceModulator
@@ -506,13 +507,24 @@ namespace Ludopathic.Goo.Managers
          
          _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
 
-         _jobDataFloodFillGroupIDs.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
-         
+         bool needsReallocation = GooPhysics.MaxNearestNeighbours != _blobKNNNearestNeighbourQueryResults[0].m_capacity;
+
+         if (needsReallocation)
+         {
+            for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i)
+            {
+               _blobKNNNearestNeighbourQueryResults[i].Dispose();
+            }
+            
+            for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i)
+            {
+               _blobKNNNearestNeighbourQueryResults[i] =
+                  new RangeQueryResult(GooPhysics.MaxNearestNeighbours, Allocator.Persistent);
+            }
+         }
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
-         _jobSpringForcesUsingKnn.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          
-         _jobDataFluidInfluence.NumNearestNeighbours = GooPhysics.MaxNearestNeighbours;
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
          _jobDataFluidInfluence.InfluenceFalloff = GooPhysics.FluidInfluenceFalloffPower;
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;

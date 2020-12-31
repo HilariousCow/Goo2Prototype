@@ -10,8 +10,6 @@ using UnityEngine;
 
 namespace Ludopathic.Goo.Jobs
 {
-    
-    
     [BurstCompile]
     public struct JobZeroFloat2Array : IJobParallelFor
     {
@@ -118,8 +116,7 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public NativeArray<RangeQueryResult> BlobNearestNeighbours;//The list we are iterating through in execute
 
-        [ReadOnly]
-        public int NumNearestNeighbours;
+    
        
         public NativeArray<float2> BlobAccelAccumulator;
 
@@ -241,8 +238,7 @@ namespace Ludopathic.Goo.Jobs
         //read and write
         public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
 
-        [ReadOnly]
-        public int NumNearestNeighbours;
+      
         
         [ReadOnly]
         public float MaxEdgeDistanceRaw;
@@ -264,7 +260,7 @@ namespace Ludopathic.Goo.Jobs
             }
             
             
-            int numBlobsToSample = math.min(numBlobEdges, NumNearestNeighbours);
+            int numBlobsToSample = numBlobEdges;
             
             
          //   Debug.Log($"index a:{index}, has num neighbours:{numBlobEdges}. Num to sample: {numBlobsToSample}");
@@ -311,7 +307,7 @@ namespace Ludopathic.Goo.Jobs
                 float falloff = invFrac * invFrac;
                 falloff = 1.0f;
                 float constantForce = distanceFromTarget * SpringConstant;
-                float pullBackForce = distanceFromTarget * speedAlongSpring * 0.5f;
+                float pullBackForce = 0.0f;//distanceFromTarget * speedAlongSpring * 0.5f;
                 
 
                 float2 forceAlongSpring = (pullBackForce + constantForce) * dir * falloff;  
@@ -338,9 +334,6 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public NativeArray<RangeQueryResult> BlobNearestNeighbours;
 
-        [ReadOnly]
-        public int NumNearestNeighbours;
-        
         //read and write
         public NativeArray<int> GroupIDs;
         public NativeQueue<int> FloodQueue;
@@ -377,7 +370,7 @@ namespace Ludopathic.Goo.Jobs
             {
                 GroupIDs[index] = id;
                 RangeQueryResult neighbours = BlobNearestNeighbours[index];
-                int neighbourMax = math.min(neighbours.Length, NumNearestNeighbours);
+                int neighbourMax =neighbours.Length;
                 for (int j = 0; j < neighbourMax; j++)
                 {
                     int indexOfNearestNeighbour = neighbours[j];
@@ -499,22 +492,6 @@ namespace Ludopathic.Goo.Jobs
         }
     }
 
-    //Hopefully temp
-    /*
-    [BurstCompile]
-    public struct JobCopyFloat3ToBlobs : IJobParallelFor
-    {   [ReadOnly]
-        public NativeArray<float3> BlobPosFloat3;
-        [WriteOnly]
-        public NativeArray<float2> BlobPos;
-        public void Execute(int index)
-        {
-            BlobPos[index] = new float2(BlobPosFloat3[index].y,BlobPosFloat3[index].z) ;
-        }
-    }
-    */
-    
-    
     //note: would be cool for this to be done outside the sim update, and for it to take time-since-last-game-frame into account
     [BurstCompile]
     public struct JobCopyBlobsToTransforms : IJobParallelForTransform
@@ -597,6 +574,8 @@ namespace Ludopathic.Goo.Jobs
             colors[index] = Color.HSVToRGB(fraction*0.75f, 1f,1f);
         }
     }
+    
+    
     [BurstCompile]
     public struct JobDebugColorisationFloat : IJobParallelFor
     {
