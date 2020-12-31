@@ -5190,7 +5190,7 @@ MonoBehaviour:
   BlobPrefab: {fileID: 4447430901608724661, guid: dde72f4b698153043870035f90e602e1, type: 3}
   BlobParticleSystemOutput: {fileID: 491226625}
   CameraTransform: {fileID: 941502024}
-  DynamicallyUpdateNearestNeighbours: 1
+  DynamicallyUpdateNearestNeighbours: 0
   CursorRadius: 0.5
   CursorAccel: 100
   CursorLinearFriction: 0.9
