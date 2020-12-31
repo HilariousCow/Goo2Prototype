@@ -20,6 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/Assets/GameData/Physics/GooPhysicsSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/GameData/Physics/GooPhysicsSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,10 +35,12 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7d/dd176bd2/IJobParallelForTransform.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/17/ae5ca2b8/Bounds.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/02/c0b14fd2/Gradient.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/float3.gen.cs" root0="SKIP_HIGHLIGHTING" />
@@ -71,6 +76,7 @@
         <option value="$PROJECT_DIR$/Assets/KNN-main/Demo/KnnApiDemo.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
       </list>
@@ -225,14 +231,33 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1161" y="297" key="SettingsEditor/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606629004853" />
-    <state x="857" y="367" width="1281" height="918" key="find.popup" timestamp="1609199396294">
+    <state x="857" y="367" width="1281" height="918" key="find.popup" timestamp="1609384610005">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="857" y="367" width="1281" height="918" key="find.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609199396294" />
+    <state x="857" y="367" width="1281" height="918" key="find.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609384610005" />
     <state x="4697" y="367" width="1281" height="918" key="find.popup/0.0.2560.1400/3840.0.2560.1400@3840.0.2560.1400" timestamp="1609013569958" />
-    <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup" timestamp="1609213668359">
+    <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup" timestamp="1609218569715">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609213668359" />
+    <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609218569715" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs</url>
+          <line>35</line>
+          <properties documentPath="D:\Goo2Prototype\Assets\Scripts\Ludopathic\Goo\Managers\CameraManager.cs" initialLine="26">
+            <startOffsets>
+              <option value="913" />
+            </startOffsets>
+            <endOffsets>
+              <option value="976" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -324,8 +324,8 @@ namespace Ludopathic.Goo.Managers
          _blobKNNNearestNeighbourQueryResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
 
          // Each range query result object needs to declare upfront what the maximum number of points in range is
-         for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i) {
-         // Allow for a maximum of 1024 results
+         for (int i = 0; i < _blobKNNNearestNeighbourQueryResults.Length; ++i) 
+         {
             _blobKNNNearestNeighbourQueryResults[i] = new RangeQueryResult(ALLOCATE_MAX_EDGES_PER_BLOB, Allocator.Persistent);
          }
 

@@ -138,11 +138,13 @@ namespace Ludopathic.Goo.Jobs
             
             float2 blobPos = BlobPositions[index];
             float2 blobVel = BlobPositions[index];
-            float2 blobAccel = BlobAccelAccumulator[index];
             
             RangeQueryResult oneBlobsNearestNeighbours = BlobNearestNeighbours[index];
 
-            int numNearestNeighboursToCompare = math.min(oneBlobsNearestNeighbours.Length, NumNearestNeighbours);
+            int numNearestNeighboursToCompare = oneBlobsNearestNeighbours.Length;//may not need this. not sure.
+            
+            float2 accumulateAccel = float2.zero;
+            
             //note this is n vs n.
             for (int jIndex = 0; jIndex < numNearestNeighboursToCompare; jIndex++)
             {
@@ -154,7 +156,7 @@ namespace Ludopathic.Goo.Jobs
                 float2 otherVel = BlobVelocities[indexOfOtherBlob];
                 
                 //only care about the difference between our velocities, not the other person's absolute
-                float2 velocityDelta = blobVel - otherVel;
+                float2 velocityDelta =  otherVel - blobVel;
                 
                 //maybe only care about stuff ahead of you?
 
@@ -167,11 +169,11 @@ namespace Ludopathic.Goo.Jobs
                
                 float invDelta = 1.0f - distFrac;//closer means more force transferred.
               //  invDelta = math.pow(invDelta, InfluenceFalloff);
-                blobAccel +=/* dot */ InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
+                accumulateAccel +=/* dot */ InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
 
-            BlobAccelAccumulator[index] = blobAccel;
+            BlobAccelAccumulator[index] += accumulateAccel;
         }
     }
     
@@ -258,8 +260,7 @@ namespace Ludopathic.Goo.Jobs
 
             if (numBlobEdges == 1)
             {
-                
-             //   return;
+                return;
             }
             
             
@@ -379,7 +380,12 @@ namespace Ludopathic.Goo.Jobs
                 int neighbourMax = math.min(neighbours.Length, NumNearestNeighbours);
                 for (int j = 0; j < neighbourMax; j++)
                 {
+                    int indexOfNearestNeighbour = neighbours[j];
+                    
+                    if (indexOfNearestNeighbour == index) continue;
+                    
                     queue.Enqueue(neighbours[j]);
+                    
                 }
             }
         }

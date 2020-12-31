@@ -47,6 +47,7 @@
               </e>
               <e p="Managers" t="Include">
                 <e p="BlobManager.cs" t="Include" />
+                <e p="CameraManager.cs" t="Include" />
                 <e p="Ludopathic.Goo.Managers.asmdef" t="Include" />
               </e>
             </e>
