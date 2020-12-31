@@ -294,11 +294,14 @@ namespace Ludopathic.Goo.Jobs
                 float targetFrac = 0.5f;
                 float distanceFromTarget = (frac-targetFrac) * 2.0f;//just position based.
 
+                float invFrac = math.clamp( 1.0f - frac, 0.0f, 1.0f);
+                float falloff = invFrac * invFrac;
+                
                 float constantForce = distanceFromTarget * SpringConstant;
-                float pullBackForce = 0.0f;//distanceFromTarget * -speedAlongSpring * 0.016f;
+                float pullBackForce = distanceFromTarget * speedAlongSpring * 0.5f;
                 
 
-                float2 forceAlongSpring = (pullBackForce + constantForce) * dir;  
+                float2 forceAlongSpring = (pullBackForce + constantForce) * dir * falloff;  
               //float2 forceAcrossSpring = 
 
               accumulateAcceleration += forceAlongSpring ;
