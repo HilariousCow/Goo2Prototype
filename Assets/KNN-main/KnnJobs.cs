@@ -149,6 +149,37 @@ namespace KNN.Jobs {
 	}
 
 	[BurstCompile(CompileSynchronously = true)]
+	public struct QueryRangesBatchJob : IJobParallelFor {
+		[ReadOnly] public KnnContainer m_container;
+		[ReadOnly] public NativeSlice<float3> m_queryPositions;
+		[ReadOnly] public NativeSlice<float> m_queryRadii;
+
+
+		public NativeArray<RangeQueryResult> Results;
+
+		public QueryRangesBatchJob(KnnContainer container, NativeArray<float3> queryPositions, NativeArray<float> ranges, NativeArray<RangeQueryResult> results) {
+			m_container = container;
+			m_queryPositions = queryPositions;
+			m_queryRadii = ranges;
+			
+			Results = results;
+		}
+
+		public void Execute(int index) {
+			// Write results to proper slice!
+		
+			var tempList = new NativeList<int>(Allocator.Temp);
+			m_container.QueryRange(m_queryPositions[index], m_queryRadii[index], tempList);
+
+			var result = Results[index];
+			result.SetResults(tempList);
+
+			Results[index] = result;
+			
+		}
+	}
+	
+	[BurstCompile(CompileSynchronously = true)]
 	public struct KnnRebuildJob : IJob {
 		KnnContainer m_container;
 

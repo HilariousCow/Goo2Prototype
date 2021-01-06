@@ -10,19 +10,7 @@ using UnityEngine;
 
 namespace Ludopathic.Goo.Jobs
 {
-    [BurstCompile]
-    public struct JobZeroFloat2Array : IJobParallelFor
-    {
-     
-        [WriteOnly]
-        public NativeArray<float2> AccumulatedAcceleration;
-
-        
-        public void Execute(int index)
-        {
-            AccumulatedAcceleration[index] = float2.zero;
-        }
-    }
+   
 
     [BurstCompile]
     public struct JobSetAcceleration : IJobParallelFor
@@ -40,22 +28,6 @@ namespace Ludopathic.Goo.Jobs
         }
     }
     
-    
-    [BurstCompile]
-    public struct JobSetIntValue : IJobParallelFor
-    {
-        [WriteOnly]
-        public NativeArray<int> ValuesToSet;
-
-        [ReadOnly]
-        public int Value;
-        public void Execute(int index)
-        {
-            ValuesToSet[index] = Value;
-        }
-    }
-    
-     
     
 
     [BurstCompile]
@@ -275,17 +247,19 @@ namespace Ludopathic.Goo.Jobs
             float2 accumulateAcceleration = float2.zero;
             
             
-            Vector3 pos = new Vector3(thisBlobsPosition.x, 0.0f, thisBlobsPosition.y);//debug only
+            //Vector3 pos = new Vector3(thisBlobsPosition.x, 0.0f, thisBlobsPosition.y);//debug only
             for (int j = 0; j < numBlobsToSample; j++)
             {
                 int indexOfOtherBlob = oneBlobsNearestNeighbours[j];
                 
                 if(indexOfOtherBlob == index) continue;
+                
                 float2 otherBlobPos = Positions[indexOfOtherBlob];
-                float2 halfWay = math.lerp(thisBlobsPosition, otherBlobPos, 0.5f);
+               // float2 halfWay = math.lerp(thisBlobsPosition, otherBlobPos, 0.5f);
             //    Vector3 halfWayPoint = new Vector3(halfWay.x, 0.0f, halfWay.y);//debug only
                 
                 float2 delta = otherBlobPos - thisBlobsPosition;
+                float2 dir = math.normalize(delta);
                 //float deltaDistSq = math.lengthsq(delta);
                 //maybe skip out if delta dist is small? Ideally something deals with it. Perhaps a pass where we de-penetrate all blobs until there are no more blobs overlapping, using a stack of paired blobs.
                
@@ -294,8 +268,7 @@ namespace Ludopathic.Goo.Jobs
                 
                
                 float deltaDist = math.length(delta);//pos b is the origin of the spring
-                float2 dir = math.normalize(delta);
-
+             
                 float speedAlongSpring = math.dot(dir, velocityDelta);
                 
                // float2 crossDir =  new float2(dir.y, -dir.x);//to stop twisting

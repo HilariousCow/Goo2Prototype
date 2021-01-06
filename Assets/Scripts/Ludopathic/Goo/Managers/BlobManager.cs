@@ -10,7 +10,7 @@ using UnityEngine.ParticleSystemJobs;
 
 using KNN;
 using KNN.Jobs;
-
+using Unity.Entities;
 using Random = UnityEngine.Random;
 
 namespace Ludopathic.Goo.Managers
@@ -48,6 +48,9 @@ namespace Ludopathic.Goo.Managers
       //
       
       //Cursor properties
+      //TODO: a lot of this stuff can be rolled into this concept of components. i.e. there's a lot to share between cursors vs blobs.
+      //And we might want cursors to repell one another. So a cursor might just be a fixed ID. Like a negative team or something.
+      
       private const int NUM_CURSORS = 1;
       private NativeArray<int> _cursorTeamIDs;
       private NativeArray<float2> _cursorInputDeltas;
@@ -55,17 +58,17 @@ namespace Ludopathic.Goo.Managers
       private NativeArray<float2> _cursorVelocities;
       private NativeArray<float2> _cursorPositions;
       private NativeArray<float> _cursorRadii;
+      
       //TODO: effective radii
       
       //Cursor display
       private Transform[] _cursorOutputTransforms;
       private TransformAccessArray _cursorTransformAccessArray;
       
-    
-      
       //Goo/Blob Properties.
       private NativeArray<int> _blobTeamIDs;
       private NativeArray<int> _blobGroupIDs;
+      private NativeArray<float> _blobRadii;
       private NativeArray<float2> _blobAccelerations;
       private NativeArray<float2> _blobVelocities;
       private NativeArray<float2> _blobPositions;
@@ -91,17 +94,18 @@ namespace Ludopathic.Goo.Managers
       //
       //Job Data
       //
-      private JobZeroFloat2Array _jobDataResetBlobAccelerations;
-      private JobZeroFloat2Array _jobDataResetCursorAccelerations;
-      private JobSetIntValue _jobDataResetGooGroups;//what if we don't totally flush this every time? Maybe identify grouped blobs that are no longer connected to their established group?
+      private MemsetNativeArray<float2> _jobDataResetBlobAccelerations;
+      private MemsetNativeArray<float2> _jobDataResetCursorAccelerations;
+      private MemsetNativeArray<int> _jobDataResetGooGroups;//what if we don't totally flush this every time? Maybe identify grouped blobs that are no longer connected to their established group?
       
+      private MemsetNativeArray<float> _jobDataCopyBlobRadii;
       private JobCopyBlobInfoToFloat3 _jobDataCopyBlobInfoToFloat3;
       
       
       private KnnContainer _knnContainer;
       private KnnRebuildJob _jobBuildKnnTree;
       
-      private QueryRangeBatchJob _jobDataQueryNearestNeighboursKNN;
+      private QueryRangesBatchJob _jobDataQueryNearestNeighboursKNN;
       
 
       private JobFloodFillIDs _jobDataFloodFillGroupIDs;
@@ -138,7 +142,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleResetBlobAccelerations;
       private JobHandle _jobHandleResetCursorAccelerations;
       private JobHandle _jobHandleResetGroupIDs;
-      
+      private JobHandle _jobHandleSetBlobRadii;
    
       private JobHandle _jobHandleResetJobs;//combiner
       private JobHandle _jobCopy2DArrayTo3DArray;//TODO
@@ -228,6 +232,7 @@ namespace Ludopathic.Goo.Managers
          _blobVelocities = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobPositions = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
          _blobAccelerations = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
+         _blobRadii = new NativeArray<float>(NUM_BLOBS, Allocator.Persistent);
          _blobTeamIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          _blobGroupIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
          _numGroups = new NativeArray<int>(1, Allocator.Persistent);
@@ -249,6 +254,7 @@ namespace Ludopathic.Goo.Managers
             _blobAccelerations[index] =  float2.zero;
             _blobColors[index] = Color.magenta;
             _blobPositionsV3[index] = new float3(randomPos.x, randomPos.y, _blobTeamIDs[index]);
+            _blobRadii[index] = GooPhysics.MaxSpringDistance;
          }
 
       
@@ -295,22 +301,14 @@ namespace Ludopathic.Goo.Managers
          //
 
          #region ResetBeginningOfSimFrame
-         _jobDataResetBlobAccelerations = new JobZeroFloat2Array
-         {
-            AccumulatedAcceleration = _blobAccelerations
-         };
 
-         _jobDataResetCursorAccelerations = new JobZeroFloat2Array
-         {
-            AccumulatedAcceleration = _cursorAccelerations
-         };
+         _jobDataResetBlobAccelerations = new MemsetNativeArray<float2> {Source = _blobAccelerations, Value = float2.zero};
+         
+         _jobDataResetCursorAccelerations = new MemsetNativeArray<float2> {Source = _cursorAccelerations, Value = float2.zero};
 
-         _jobDataResetGooGroups = new JobSetIntValue()
-         {
-            ValuesToSet = _blobGroupIDs,
-            Value = -1
-         };
-
+         _jobDataResetGooGroups = new MemsetNativeArray<int> {Source = _blobGroupIDs, Value = -1};
+         _jobDataCopyBlobRadii = new MemsetNativeArray<float> {Source = _blobRadii, Value = GooPhysics.MaxSpringDistance};
+         
          _jobDataCopyBlobInfoToFloat3 = new JobCopyBlobInfoToFloat3
          {
             BlobPos = _blobPositions,
@@ -333,10 +331,10 @@ namespace Ludopathic.Goo.Managers
          }
 
          
-         _jobDataQueryNearestNeighboursKNN = new QueryRangeBatchJob{ 
+         _jobDataQueryNearestNeighboursKNN = new QueryRangesBatchJob{ 
             m_container = _knnContainer,
             m_queryPositions = _blobPositionsV3, 
-            m_range = GooPhysics.MaxSpringDistance,
+            m_queryRadii = _blobRadii,
             Results = _blobKNNNearestNeighbourQueryResults
             
          };
@@ -344,8 +342,6 @@ namespace Ludopathic.Goo.Managers
 
          #region Updates
          //build edges with existing positions
-
-       
 
 
          _jobDataFloodFillGroupIDs = new JobFloodFillIDs()
@@ -379,6 +375,9 @@ namespace Ludopathic.Goo.Managers
          };
 
          //update cursor accel based on inputs
+         //todo: could be CopyTo?
+         
+         //_cursorInputDeltas.CopyTo(_cursorAccelerations);
          _jobDataSetCursorAcceleration = new JobSetAcceleration
          {
             ValueToSet = _cursorInputDeltas,
@@ -500,11 +499,13 @@ namespace Ludopathic.Goo.Managers
          _jobDataUpdateCursorPositions.DeltaTime = deltaTime;
          _jobDataApplyFrictionToBlobs.DeltaTime = deltaTime;
          _jobDataUpdateBlobPositions.DeltaTime = deltaTime;
-      
+
+         _jobDataCopyBlobRadii.Value = GooPhysics.MaxSpringDistance;
+         
          _jobDataApplyFrictionToBlobs.ConstantFriction = GooPhysics.ConstantFriction;
          _jobDataApplyFrictionToBlobs.LinearFriction = GooPhysics.ConstantFriction;
          
-         _jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;
+         //_jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;//replace with a full copy job
 
          bool needsReallocation = GooPhysics.MaxNearestNeighbours != _blobKNNNearestNeighbourQueryResults[0].m_capacity;
 
@@ -536,7 +537,7 @@ namespace Ludopathic.Goo.Managers
          }
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
-         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
+         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
          
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
@@ -570,6 +571,7 @@ namespace Ludopathic.Goo.Managers
          _jobHandleResetBlobAccelerations = _jobDataResetBlobAccelerations.Schedule(_blobAccelerations.Length, 64);
          _jobHandleResetCursorAccelerations = _jobDataResetCursorAccelerations.Schedule(_cursorAccelerations.Length, 1);
          _jobHandleResetGroupIDs = _jobDataResetGooGroups.Schedule(_blobGroupIDs.Length, 64);
+         
          #endregion //ResetBeginningOfSimFrame
          
          //_jobHandleResetJobs.Complete();
@@ -579,15 +581,19 @@ namespace Ludopathic.Goo.Managers
        
          
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
-
+         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleSetBlobRadii);
+         //_jobDataQueryNearestNeighboursKNN
+         
          JobHandle _jobHandleQueryKNN;
          if (bNearestNeighboursDirty || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
          {
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
             _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
+            _jobHandleSetBlobRadii = _jobDataCopyBlobRadii.Schedule(_blobRadii.Length, 64);
             //now query nearest neighbours
-            _jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
+            JobHandle resetRadiiAndBuildKNNTree =  JobHandle.CombineDependencies(_jobHandleSetBlobRadii, _jobHandleBuildKNNTree);
+            _jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, resetRadiiAndBuildKNNTree);
             _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleQueryKNN);
             #endregion
             
