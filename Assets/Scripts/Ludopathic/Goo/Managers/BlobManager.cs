@@ -21,6 +21,8 @@ namespace Ludopathic.Goo.Managers
       public GameObject BlobPrefab;
       public ParticleSystem BlobParticleSystemOutput;
 
+      public int RandomSeed = 0;
+      
       public Camera CameraTransform;
 
       [Space]
@@ -108,7 +110,8 @@ namespace Ludopathic.Goo.Managers
       private QueryRangesBatchJob _jobDataQueryNearestNeighboursKNN;
       
 
-      private JobFloodFillIDs _jobDataFloodFillGroupIDs;
+      private JobFloodFillIDs _jobDataFloodFillGroupIDs;//need to make this per team
+      
       private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
 
       private JobVelocityInfluenceFalloff _jobDataFluidInfluence;
@@ -185,6 +188,8 @@ namespace Ludopathic.Goo.Managers
       private void OnEnable()
       {
          Application.targetFrameRate = 600;
+         
+         Random.InitState(RandomSeed);
          
          _cursorTeamIDs = new NativeArray<int>(NUM_CURSORS, Allocator.Persistent);
          _cursorInputDeltas = new NativeArray<float2>(NUM_CURSORS, Allocator.Persistent);
