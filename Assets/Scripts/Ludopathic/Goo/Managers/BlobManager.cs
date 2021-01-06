@@ -100,6 +100,7 @@ namespace Ludopathic.Goo.Managers
       
       private KnnContainer _knnContainer;
       private KnnRebuildJob _jobBuildKnnTree;
+      
       private QueryRangeBatchJob _jobDataQueryNearestNeighboursKNN;
       
 
@@ -361,6 +362,7 @@ namespace Ludopathic.Goo.Managers
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
             SpringConstant = GooPhysics.SpringForce,
+            DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
             Velocity = _blobVelocities,
          };
@@ -533,6 +535,7 @@ namespace Ludopathic.Goo.Managers
             
          }
          _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
+         _jobSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.SpringForce;
          
          _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;

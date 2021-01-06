@@ -46,8 +46,7 @@ namespace KNN.Jobs {
 			m_container.QueryRange(m_queryPosition, m_range, m_result);
 		}
 	}
-
-
+	
 	[BurstCompile(CompileSynchronously = true)]
 	public struct QueryKNearestBatchJob : IJobParallelForBatch {
 		[ReadOnly] KnnContainer m_container;

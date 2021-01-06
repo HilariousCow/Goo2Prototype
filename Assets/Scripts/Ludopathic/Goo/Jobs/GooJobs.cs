@@ -245,6 +245,9 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public float SpringConstant;
         
+        [ReadOnly]
+        public float DampeningConstant;
+        
         //for each blob
         public void Execute(int index)
         {
@@ -303,14 +306,14 @@ namespace Ludopathic.Goo.Jobs
                 float targetFrac = 0.5f;
                 float distanceFromTarget = (frac-targetFrac) * 2.0f;//just position based.
 
-                float invFrac = math.clamp( 1.0f - frac, 0.0f, 1.0f);
-                float falloff = invFrac * invFrac;
-                falloff = 1.0f;
+                //float invFrac = math.clamp( 1.0f - frac, 0.0f, 1.0f);
+               // float falloff = invFrac * invFrac;
+             //   falloff = 1.0f;
                 float constantForce = distanceFromTarget * SpringConstant;
-                float pullBackForce = 0.0f;//distanceFromTarget * speedAlongSpring * 0.5f;
-                
+                float dampening =  speedAlongSpring * DampeningConstant;
 
-                float2 forceAlongSpring = (pullBackForce + constantForce) * dir * falloff;  
+
+                float2 forceAlongSpring = (dampening + constantForce) * dir;// * falloff;  
               //float2 forceAcrossSpring = 
 
                 accumulateAcceleration += forceAlongSpring ;
