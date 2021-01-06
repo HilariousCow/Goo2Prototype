@@ -581,7 +581,6 @@ namespace Ludopathic.Goo.Managers
        
          
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
-         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleSetBlobRadii);
          //_jobDataQueryNearestNeighboursKNN
          
          JobHandle _jobHandleQueryKNN;
