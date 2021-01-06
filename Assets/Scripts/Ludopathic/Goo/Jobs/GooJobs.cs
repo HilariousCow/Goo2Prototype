@@ -294,11 +294,25 @@ namespace Ludopathic.Goo.Jobs
         }
     }
     
+    [BurstCompile]
+    public struct JobFilterByTeam : IJobParallelForFilter
+    {
+        [ReadOnly]
+        public NativeArray<int> TeamIDs;
+        
+        [ReadOnly]
+        public int TeamID;
+
+        public bool Execute(int index)
+        {
+            return TeamID == TeamIDs[index];
+        }
+    }
     
     [BurstCompile]
     public struct JobFloodFillIDs : IJob
     {
-        
+   
         [ReadOnly]
         public NativeArray<RangeQueryResult> BlobNearestNeighbours;
 
@@ -312,26 +326,29 @@ namespace Ludopathic.Goo.Jobs
         public void Execute()
         {
             
-            int id = 0;
+            int groupID = 0;
             
             for (int i = 0; i < BlobNearestNeighbours.Length; i++)
             {
-                if (GroupIDs[i] < 0)
+
+                int blobIndex =i;
+                if (GroupIDs[blobIndex] < 0)
                 {
-                    Fill(i, id, ref FloodQueue);
+                    Fill(blobIndex, groupID, ref FloodQueue);
                     while (!FloodQueue.IsEmpty())
                     {
                         int neighbourIndex = FloodQueue.Dequeue();
-                        Fill(neighbourIndex, id, ref FloodQueue);
+                        Fill(neighbourIndex, groupID, ref FloodQueue);
                     }
                 }
-                id++;
+                groupID++;
             }
 
             //simple number of groups output
-            NumGroups[0] = id;
+            NumGroups[0] = groupID;
         }
 
+        //Hmm. starting to be a mess because we don't populate KD trees per team yet (we just "borrow" z to be team and separate. Kinda hacky)
         private void Fill(int index, int id, ref NativeQueue<int> queue)
         {
             if (GroupIDs[index] < 0)//only flood fill unassigned blobs

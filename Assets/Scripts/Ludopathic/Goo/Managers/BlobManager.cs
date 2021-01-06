@@ -1,16 +1,19 @@
 
 using System;
 using Ludopathic.Goo.Jobs;
+
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Entities;
+
+using KNN;
+using KNN.Jobs;
+
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.ParticleSystemJobs;
 
-using KNN;
-using KNN.Jobs;
-using Unity.Entities;
 using Random = UnityEngine.Random;
 
 namespace Ludopathic.Goo.Managers
@@ -588,17 +591,18 @@ namespace Ludopathic.Goo.Managers
          _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
          //_jobDataQueryNearestNeighboursKNN
          
-         JobHandle _jobHandleQueryKNN;
          if (bNearestNeighboursDirty || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
          {
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
             _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
             _jobHandleSetBlobRadii = _jobDataCopyBlobRadii.Schedule(_blobRadii.Length, 64);
+            
+            JobHandle jobHandleResetRadiiAndBuildKNNTree =  JobHandle.CombineDependencies(_jobHandleSetBlobRadii, _jobHandleBuildKNNTree);
+            
             //now query nearest neighbours
-            JobHandle resetRadiiAndBuildKNNTree =  JobHandle.CombineDependencies(_jobHandleSetBlobRadii, _jobHandleBuildKNNTree);
-            _jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, resetRadiiAndBuildKNNTree);
-            _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleQueryKNN);
+            JobHandle jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, jobHandleResetRadiiAndBuildKNNTree);
+            _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandleQueryKNN);
             #endregion
             
             bNearestNeighboursDirty = false;
