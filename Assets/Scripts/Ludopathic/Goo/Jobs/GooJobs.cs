@@ -283,7 +283,7 @@ namespace Ludopathic.Goo.Jobs
                 if(indexOfOtherBlob == index) continue;
                 float2 otherBlobPos = Positions[indexOfOtherBlob];
                 float2 halfWay = math.lerp(thisBlobsPosition, otherBlobPos, 0.5f);
-                Vector3 halfWayPoint = new Vector3(halfWay.x, 0.0f, halfWay.y);//debug only
+            //    Vector3 halfWayPoint = new Vector3(halfWay.x, 0.0f, halfWay.y);//debug only
                 
                 float2 delta = otherBlobPos - thisBlobsPosition;
                 //float deltaDistSq = math.lengthsq(delta);
@@ -319,7 +319,7 @@ namespace Ludopathic.Goo.Jobs
                 accumulateAcceleration += forceAlongSpring ;
                 
           //      Debug.Log($"index a:{index}, index b:{indexOfOtherBlob}");
-                Debug.DrawLine(pos, halfWayPoint, Color.Lerp(Color.green, Color.red, frac));
+         //       Debug.DrawLine(pos, halfWayPoint, Color.Lerp(Color.green, Color.red, frac));
             }
 
             
