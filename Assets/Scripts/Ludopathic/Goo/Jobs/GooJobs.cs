@@ -88,22 +88,20 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public NativeArray<RangeQueryResult> BlobNearestNeighbours;//The list we are iterating through in execute
 
-    
-       
-        public NativeArray<float2> BlobAccelAccumulator;
-
         [ReadOnly]
-        public float InfluenceModulator;
+        public float InfluenceModulator;//todo: make array
+        
         [ReadOnly]
-        public float InfluenceRadius;
+        public NativeArray<float> InfluenceRadius;//todo: point at blob radii array
    
+        
+        public NativeArray<float2> BlobAccelAccumulator;
         
         //For each blob
         //Add force based on a nearby blob's velocity.
         //Also just the blobs close enough for blob influence
         public void Execute(int index)
         {
-            
             float2 blobPos = BlobPositions[index];
             float2 blobVel = BlobPositions[index];
             
@@ -122,21 +120,15 @@ namespace Ludopathic.Goo.Jobs
                 
                 float2 otherPos = BlobPositions[indexOfOtherBlob];
                 float2 otherVel = BlobVelocities[indexOfOtherBlob];
-                
+                float otherRadius = InfluenceRadius[indexOfOtherBlob];
                 //only care about the difference between our velocities, not the other person's absolute
                 float2 velocityDelta =  otherVel - blobVel;
-                
-                //maybe only care about stuff ahead of you?
-
-                //experiment
-              //  float dot = math.dot(otherVel, math.normalizesafe(blobPos - otherPos) );
-             //   dot = math.clamp(dot, 0.0f, 1.0f);
-            
+         
                 float dist = math.distance(blobPos, otherPos);//todo: see if we can use sq distance for falloff. I doubt it but maybe?
-                float distFrac =math.clamp(  dist / InfluenceRadius , 0.0f, 1.0f);
+                float distFrac =math.clamp(  dist / otherRadius, 0.0f, 1.0f);
                
                 float invDelta = 1.0f - distFrac;//closer means more force transferred.
-              //  invDelta = math.pow(invDelta, InfluenceFalloff);
+      
                 accumulateAccel +=/* dot */ InfluenceModulator * invDelta * velocityDelta;//todo add some kinda proportion control thing.
              
             }
@@ -463,7 +455,7 @@ namespace Ludopathic.Goo.Jobs
         public NativeArray<float3> BlobPosFloat3;
         public void Execute(int index)
         {
-            BlobPosFloat3[index] = new float3(BlobTeams[index] * 100.0f, //Hack: make the team spread REALLY FAR so that there's almost no chance of them coming back as being within range, since the KNN Queries use sqDistance checks
+            BlobPosFloat3[index] = new float3(BlobTeams[index] * 1000.0f, //Hack: make the team spread REALLY FAR so that there's almost no chance of them coming back as being within range, since the KNN Queries use sqDistance checks
                 BlobPos[index].x,BlobPos[index].y) ;
         }
     }

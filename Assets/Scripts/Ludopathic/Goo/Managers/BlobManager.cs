@@ -86,7 +86,7 @@ namespace Ludopathic.Goo.Managers
       
       //Goo Graph
       //think about slices for each blob which is just other-nearby-blobs. But have to remember their master index
-      private int ALLOCATE_MAX_EDGES_PER_BLOB = 20;
+   
       private NativeArray<RangeQueryResult> _blobKNNNearestNeighbourQueryResults;
       
    
@@ -246,8 +246,10 @@ namespace Ludopathic.Goo.Managers
          for (int index = 0; index < NUM_BLOBS; index++)
          {
             Vector3 randomPos = Random.insideUnitCircle * PetriDishRadius;
+
+            float angleFraction =( Mathf.Atan2(randomPos.x, randomPos.y) + Mathf.PI) / (Mathf.PI * 2.0f);//flipped x and y is intentional so that 2player gets horizontal split
             //Vector3 randomVel = Random.insideUnitCircle;
-            _blobTeamIDs[index] = index % NumTeams;
+            _blobTeamIDs[index] = Mathf.FloorToInt( angleFraction * (float)NumTeams );
             _blobGroupIDs[index] = -1;
             _blobPositions[index] = new float2(randomPos.x, randomPos.y);
             _blobVelocities[index] = float2.zero;
@@ -367,11 +369,10 @@ namespace Ludopathic.Goo.Managers
          {
             BlobPositions = _blobPositions,
             BlobVelocities = _blobVelocities,
-            BlobAccelAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
-
-            InfluenceRadius = GooPhysics.MaxSpringDistance,
-            InfluenceModulator =  GooPhysics.FluidInfluenceModulator
+            InfluenceRadius = _blobRadii,
+            InfluenceModulator =  GooPhysics.FluidInfluenceModulator,
+            BlobAccelAccumulator = _blobAccelerations
          };
 
          //update cursor accel based on inputs
@@ -539,7 +540,6 @@ namespace Ludopathic.Goo.Managers
          _jobSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
          _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
          
-         _jobDataFluidInfluence.InfluenceRadius = GooPhysics.MaxSpringDistance;
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
 
        
@@ -606,19 +606,18 @@ namespace Ludopathic.Goo.Managers
          //
          
       
-         //update cursors
+         //update cursors//todo: treat more like ECS. cursors happen to have positions/velocities/radii. But they out to be "type" tagged somehow.
+         
          _jobHandleSetCursorAcceleration = _jobDataSetCursorAcceleration.Schedule(_cursorInputDeltas.Length, 1, _jobHandleResetJobs);
          
          _jobHandleApplyCursorFriction = _jobDataApplyCursorFriction.Schedule(_cursorInputDeltas.Length, 1, _jobHandleSetCursorAcceleration);
          
          _jobHandleUpdateCursorPositions = _jobDataUpdateCursorPositions.Schedule(_cursorInputDeltas.Length, 1, _jobHandleApplyCursorFriction);
          
-         _jobHandleCursorsInfluenceBlobs = _jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleUpdateCursorPositions);
+         _jobHandleCursorsInfluenceBlobs = _jobDataCursorsInfluenceBlobs.Schedule(_blobPositions.Length, 64, _jobHandleUpdateCursorPositions);//todo: give cursors knnquery data.
          
          //Cursor Influences blobs once it's ready
          //Blob sim gets updated after cursor influence
-         
-         
          
          //blobs all figure out how much push and pull is coming from neighbouring blobs.
 
@@ -706,9 +705,6 @@ namespace Ludopathic.Goo.Managers
       //slow assed. Can jobify
       private void UpdateBlobColors(ref NativeArray<Color> colors)
       {
-         float minVal = 0.0f;
-         float maxVal = 1.0f;
-
          switch (DebugStyle)
          {
             case BlobColorDebugStyle.Edges:

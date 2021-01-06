@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GooPhysicsSettings
   m_EditorClassIdentifier: 
   MaxNearestNeighbours: 9
-  MaxSpringDistance: 10
+  MaxSpringDistance: 1.56
   SpringForce: 7.8
   DampeningConstant: 1.14
   LinearFriction: 0
