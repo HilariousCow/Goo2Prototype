@@ -635,7 +635,7 @@ namespace Ludopathic.Goo.Managers
 
             if (UseUniqueEdges)
             {
-                  
+               _uniqueBlobEdges.Clear();
                JobHandle jobHandFindUniqueEdges = _jobDataUniqueSprings.Schedule(_blobPositionsV3.Length, 64, _jobHandleResetJobs);
                _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandFindUniqueEdges);
             }

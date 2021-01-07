@@ -333,7 +333,8 @@ namespace Ludopathic.Goo.Jobs
                 long key = edge.CustomHashCode();
                 if (UniqueEdges.Add(key))//only allow unique EDGES.
                 {
-                    Edges.Add(edge.A, edge.B);//Note this allowing for
+          //          Debug.Log($"Adding unique edge: {edge.A}, { edge.B} " );
+                    Edges.Add(edge.A, edge.B);
                     Edges.Add(edge.B, edge.A);
                 }
             }
@@ -357,8 +358,6 @@ namespace Ludopathic.Goo.Jobs
     [BurstCompile]
     public struct JobUniqueSpringForce : IJobNativeMultiHashMapMergedSharedKeyIndices
     {
-     
-        
         [ReadOnly]
         public NativeArray<float2> Positions;
         
@@ -366,6 +365,8 @@ namespace Ludopathic.Goo.Jobs
         public NativeArray<float2> Velocity;//used to figure out counter spring force.
         
         //read and write
+        //what was the "allow writing outside of current index thingy?
+        [NativeDisableContainerSafetyRestriction]
         public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
 
         [ReadOnly]
@@ -379,17 +380,25 @@ namespace Ludopathic.Goo.Jobs
         
         public void ExecuteFirst(int index)
         {
-            
+       //     Debug.Log($"first time index: {index}" );
         }
 
         public void ExecuteNext(int firstIndex, int index)
         {
+            
+          //  Debug.Log($"first index: {firstIndex}, other index {index}" );
+            
             float2 thisBlobsPosition = Positions[firstIndex];
             float2 thisBlobVelocity = Velocity[firstIndex];
         
             float2 otherBlobPos = Positions[index];
             float2 otherBlobVel = Velocity[index];
-            
+
+            float3 posAViz = thisBlobsPosition.xxy;
+            posAViz.y = 0;
+            float3 posBViz = math.lerp(thisBlobsPosition, otherBlobPos, 0.45f).xxy;
+            posBViz.y = 0;
+            Debug.DrawLine(posAViz, posBViz, Color.yellow);
             float2 delta = otherBlobPos - thisBlobsPosition;
             float2 velocityDelta = otherBlobVel - thisBlobVelocity;
             
@@ -408,8 +417,9 @@ namespace Ludopathic.Goo.Jobs
 
             float2 forceAlongSpring = (dampening + constantForce) * dir;
             
-            
+          //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
             AccelerationAccumulator[firstIndex] += forceAlongSpring;
+          //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
         }
     }
 
@@ -595,38 +605,7 @@ namespace Ludopathic.Goo.Jobs
             }
         }
 
-        /*
-         Causes stack overflow on large scenes (though is technically correct)
-        public void Execute()
-        {
-            int idToFillWith = 0;
-
-            for (int i = 0; i < BlobNearestNeighbours.Length; i++)
-            {
-                if (GroupIDs[i] < 0)
-                {
-                    FillNeighboursWithID(i, idToFillWith);
-                }
-                idToFillWith++;
-            }
-        }
-
-        private void FillNeighboursWithID(int index, int idToFillWith)
-        {
-            GroupIDs[index] = idToFillWith;
-            RangeQueryResult nearestNeighbours = BlobNearestNeighbours[index];
-            int numBlobsToCheck = math.min(NumNearestNeighbours, nearestNeighbours.Length);
-            for (int j = 0; j < numBlobsToCheck; j++)//possibly start at 1 because 0 index is "us"
-            {
-                int indexOfNearestNeighbour = nearestNeighbours[j];
-                if(index == indexOfNearestNeighbour) continue;//don't do infinite recursion!
-                if (GroupIDs[indexOfNearestNeighbour] < 0)
-                {
-                    FillNeighboursWithID(indexOfNearestNeighbour, idToFillWith);
-                }
-            }
-        }
-        */
+  
     }
     
     
