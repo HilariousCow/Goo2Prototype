@@ -5191,8 +5191,8 @@ MonoBehaviour:
   BlobParticleSystemOutput: {fileID: 491226625}
   RandomSeed: 0
   CameraTransform: {fileID: 941502024}
-  DynamicallyUpdateNearestNeighbours: 0
-  UseUniqueEdges: 0
+  DynamicallyUpdateNearestNeighbours: 1
+  UseUniqueEdges: 1
   CursorRadius: 14.46
   CursorAccel: 100
   CursorLinearFriction: 0.9

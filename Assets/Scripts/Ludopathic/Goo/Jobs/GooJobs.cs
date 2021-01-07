@@ -1,19 +1,122 @@
+using System;
 using KNN.Jobs;
+using Ludopathic.Goo.Jobs;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Entities;
-
+using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
 
 using UnityEngine.ParticleSystemJobs;
 using UnityEngine;
+public static class JobNativeMultiHashMapUniqueHashExtensions
+    {
+        internal struct JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob>
+            where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
+        {
+            [ReadOnly] public NativeMultiHashMap<int, int> HashMap;
+            internal TJob JobData;
+ 
+            private static IntPtr s_JobReflectionData;
+ 
+            internal static IntPtr Initialize()
+            {
+                if (s_JobReflectionData == IntPtr.Zero)
+                {
+                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob>), typeof(TJob), (ExecuteJobFunction)Execute);
+                }
+ 
+                return s_JobReflectionData;
+            }
+ 
+            delegate void ExecuteJobFunction(ref JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob> jobProducer, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+ 
+            public static unsafe void Execute(ref JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob> jobProducer, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            {
+                while (true)
+                {
+                    int begin;
+                    int end;
+ 
+                    if (!JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                    {
+                        return;
+                    }
+ 
+                    var bucketData = jobProducer.HashMap.GetUnsafeBucketData();
+                    var buckets = (int*)bucketData.buckets;
+                    var nextPtrs = (int*)bucketData.next;
+                    var keys = bucketData.keys;
+                    var values = bucketData.values;
+ 
+                    for (int i = begin; i < end; i++)
+                    {
+                        int entryIndex = buckets[i];
+ 
+                        while (entryIndex != -1)
+                        {
+                            var key = UnsafeUtility.ReadArrayElement<int>(keys, entryIndex);
+                            var value = UnsafeUtility.ReadArrayElement<int>(values, entryIndex);
+                            int firstValue;
+ 
+                            NativeMultiHashMapIterator<int> it;
+                            jobProducer.HashMap.TryGetFirstValue(key, out firstValue, out it);
+ 
+                            // [macton] Didn't expect a usecase for this with multiple same values
+                            // (since it's intended use was for unique indices.)
+                            // https://forum.unity.com/threads/ijobnativemultihashmapmergedsharedkeyindices-unexpected-behavior.569107/#post-3788170
+                            if (entryIndex == it.GetEntryIndex())
+                            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                                JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobProducer), value, 1);
+#endif
+                                jobProducer.JobData.ExecuteFirst(value);
+                            }
+                            else
+                            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                                var startIndex = math.min(firstValue, value);
+                                var lastIndex = math.max(firstValue, value);
+                                var rangeLength = (lastIndex - startIndex) + 1;
+ 
+                                JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobProducer), startIndex, rangeLength);
+#endif
+                                jobProducer.JobData.ExecuteNext(firstValue, value);
+                            }
+ 
+                            entryIndex = nextPtrs[entryIndex];
+                        }
+                    }
+                }
+            }
+        }
+ 
+        public static unsafe JobHandle Schedule<TJob>(this TJob jobData, NativeMultiHashMap<int, int> hashMap, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle())
+            where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
+        {
+            var jobProducer = new JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob>
+            {
+                HashMap = hashMap,
+                JobData = jobData
+            };
+ 
+            var scheduleParams = new JobsUtility.JobScheduleParameters(
+                UnsafeUtility.AddressOf(ref jobProducer)
+                , JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob>.Initialize()
+                , dependsOn
+                , ScheduleMode.Parallel
+            );
+ 
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, hashMap.GetUnsafeBucketData().bucketCapacityMask + 1, minIndicesPerJobCount);
+        }
+    }
 
 namespace Ludopathic.Goo.Jobs
 {
    
-
     [BurstCompile]
     public struct JobSetAcceleration : IJobParallelFor
     {
@@ -199,7 +302,7 @@ namespace Ludopathic.Goo.Jobs
             B = math.max(a, b);
         }
 
-        public long GetHashCode()
+        public long CustomHashCode()
         {
             return A.GetHashCode() ^ B.GetHashCode();
         }
@@ -227,7 +330,7 @@ namespace Ludopathic.Goo.Jobs
                 if( index == indexOfOther) continue;//ignore self finds.
                 SpringEdge edge = new SpringEdge(index, indexOfOther);
 
-                long key = edge.GetHashCode();
+                long key = edge.CustomHashCode();
                 if (UniqueEdges.Add(key))//only allow unique EDGES.
                 {
                     Edges.Add(edge.A, edge.B);//Note this allowing for
@@ -237,12 +340,24 @@ namespace Ludopathic.Goo.Jobs
         }
     }
 
-    [BurstCompile]
-    public struct JobUniqueSpringForce : IJobParallelFor
+    [JobProducerType(typeof(JobNativeMultiHashMapUniqueHashExtensions.JobNativeMultiHashMapMergedSharedKeyIndicesProducer<>))]
+    public interface IJobNativeMultiHashMapMergedSharedKeyIndices
     {
-        [ReadOnly]
-        public NativeMultiHashMap<int, int> Edges;
-        
+        // The first time each key (=hash) is encountered, ExecuteFirst() is invoked with corresponding value (=index).
+        void ExecuteFirst(int index);
+ 
+        // For each subsequent instance of the same key in the bucket, ExecuteNext() is invoked with the corresponding
+        // value (=index) for that key, as well as the value passed to ExecuteFirst() the first time this key
+        // was encountered (=firstIndex).
+        void ExecuteNext(int firstIndex, int index);
+    }
+ 
+   
+    
+    [BurstCompile]
+    public struct JobUniqueSpringForce : IJobNativeMultiHashMapMergedSharedKeyIndices
+    {
+     
         
         [ReadOnly]
         public NativeArray<float2> Positions;
@@ -253,8 +368,6 @@ namespace Ludopathic.Goo.Jobs
         //read and write
         public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
 
-      
-        
         [ReadOnly]
         public float MaxEdgeDistanceRaw;
         
@@ -264,51 +377,39 @@ namespace Ludopathic.Goo.Jobs
         [ReadOnly]
         public float DampeningConstant;
         
-        //for each blob
-        public void Execute(int index)
+        public void ExecuteFirst(int index)
         {
-            if(!Edges.ContainsKey(index)) return;
             
-            float2 thisBlobsPosition = Positions[index];
+        }
 
-            float2 thisBlobVelocity = Velocity[index];
-            float2 accumulateAcceleration = float2.zero;
-
+        public void ExecuteNext(int firstIndex, int index)
+        {
+            float2 thisBlobsPosition = Positions[firstIndex];
+            float2 thisBlobVelocity = Velocity[firstIndex];
+        
+            float2 otherBlobPos = Positions[index];
+            float2 otherBlobVel = Velocity[index];
             
-            //How do i actually iterate through these?
-            NativeMultiHashMap<int, int>.Enumerator enumerator = Edges.GetValuesForKey(index);
-            do
-            {
-                int indexOfOtherBlob = enumerator.Current;
+            float2 delta = otherBlobPos - thisBlobsPosition;
+            float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+            
+            float2 dir = math.normalize(delta);
 
-                float2 otherBlobPos = Positions[indexOfOtherBlob];
+            float deltaDist = math.length(delta); //pos b is the origin of the spring
 
-                float2 delta = otherBlobPos - thisBlobsPosition;
-                float2 dir = math.normalize(delta);
+            float speedAlongSpring = math.dot(dir, velocityDelta);
+            float frac = deltaDist / MaxEdgeDistanceRaw;
 
-                float2 otherBlobVel = Velocity[indexOfOtherBlob];
-                float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+            float targetFrac = 0.5f;
+            float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
 
+            float constantForce = distanceFromTarget * SpringConstant;
+            float dampening = speedAlongSpring * DampeningConstant;
 
-                float deltaDist = math.length(delta); //pos b is the origin of the spring
-
-                float speedAlongSpring = math.dot(dir, velocityDelta);
-
-
-                float frac = deltaDist / MaxEdgeDistanceRaw;
-
-                float targetFrac = 0.5f;
-                float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
-
-                float constantForce = distanceFromTarget * SpringConstant;
-                float dampening = speedAlongSpring * DampeningConstant;
-
-                float2 forceAlongSpring = (dampening + constantForce) * dir;
-                accumulateAcceleration += forceAlongSpring;
-
-            } while (enumerator.MoveNext());
-
-            AccelerationAccumulator[index] += accumulateAcceleration;
+            float2 forceAlongSpring = (dampening + constantForce) * dir;
+            
+            
+            AccelerationAccumulator[firstIndex] += forceAlongSpring;
         }
     }
 

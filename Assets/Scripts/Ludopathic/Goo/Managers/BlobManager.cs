@@ -376,7 +376,7 @@ namespace Ludopathic.Goo.Managers
          {
             AccelerationAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
@@ -393,8 +393,8 @@ namespace Ludopathic.Goo.Managers
          _jobDataSpringForcesUniqueEdges = new JobUniqueSpringForce
          {
             AccelerationAccumulator = _blobAccelerations,
-            Edges = _uniqueBlobEdges,
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
+            
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
@@ -564,12 +564,12 @@ namespace Ludopathic.Goo.Managers
          }
          _jobDataSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobDataSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
-         _jobDataSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
+         _jobDataSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f;
          
          
          _jobDataSpringForcesUniqueEdges.SpringConstant = GooPhysics.SpringForce;
          _jobDataSpringForcesUniqueEdges.DampeningConstant = GooPhysics.DampeningConstant;
-         _jobDataSpringForcesUniqueEdges.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
+         _jobDataSpringForcesUniqueEdges.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f;
          
    
             
@@ -673,8 +673,7 @@ namespace Ludopathic.Goo.Managers
 
          if (UseUniqueEdges)
          {
-            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_blobAccelerations.Length, 64,
-               _jobHandleFloodFillGroupiID);
+            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_uniqueBlobEdges, 64, _jobHandleFloodFillGroupiID);
          }
          else
          {
