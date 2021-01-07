@@ -30,7 +30,9 @@ namespace Ludopathic.Goo.Managers
 
       [Space]
       public bool DynamicallyUpdateNearestNeighbours;
-
+      public bool UseUniqueEdges= true;
+      
+      
       private bool bNearestNeighboursDirty = true;
       [Space]
       //Gameplay properties
@@ -94,7 +96,9 @@ namespace Ludopathic.Goo.Managers
    
       private NativeArray<RangeQueryResult> _blobKNNNearestNeighbourQueryResults;
       
-   
+      private NativeMultiHashMap<int, int> _uniqueBlobEdges;
+      
+      public NativeHashSet<long> _uniqueBlobEdgesHashSet;
       
       //
       //Job Data
@@ -111,12 +115,16 @@ namespace Ludopathic.Goo.Managers
       private KnnRebuildJob _jobBuildKnnTree;
       
       private QueryRangesBatchJob _jobDataQueryNearestNeighboursKNN;
-      
+      private JobUniqueSprings _jobDataUniqueSprings;
 
       private JobFloodFillIDs _jobDataFloodFillGroupIDs;//need to make this per team
       
-      private JobSpringForceUsingKNNResults _jobSpringForcesUsingKnn;
-
+      //either or
+      private JobSpringForceUsingKNNResults _jobDataSpringForcesUsingKnn;
+      private JobUniqueSpringForce _jobDataSpringForcesUniqueEdges;
+      // 
+      
+      
       private JobVelocityInfluenceFalloff _jobDataFluidInfluence;
       
       private JobSetAcceleration _jobDataSetCursorAcceleration;
@@ -332,6 +340,8 @@ namespace Ludopathic.Goo.Managers
          // Initialize all the range query results
          _blobKNNNearestNeighbourQueryResults = new NativeArray<RangeQueryResult>(_blobPositions.Length, Allocator.Persistent);
 
+         _uniqueBlobEdges = new NativeMultiHashMap<int, int>(_blobPositions.Length * 40, Allocator.Persistent);
+         _uniqueBlobEdgesHashSet = new NativeHashSet<long>(_blobPositions.Length* 40, Allocator.Persistent);
          // Each range query result object needs to declare upfront what the maximum number of points in range is
          
          
@@ -362,7 +372,7 @@ namespace Ludopathic.Goo.Managers
             NumGroups = _numGroups //for safety.don't want divide by zero
          };
          
-         _jobSpringForcesUsingKnn = new JobSpringForceUsingKNNResults()
+         _jobDataSpringForcesUsingKnn = new JobSpringForceUsingKNNResults
          {
             AccelerationAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
@@ -373,6 +383,24 @@ namespace Ludopathic.Goo.Managers
             Velocity = _blobVelocities,
          };
 
+          _jobDataUniqueSprings = new JobUniqueSprings
+         {
+            BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
+            Edges = _uniqueBlobEdges.AsParallelWriter(),
+            UniqueEdges = _uniqueBlobEdgesHashSet.AsParallelWriter()
+         };
+         
+         _jobDataSpringForcesUniqueEdges = new JobUniqueSpringForce
+         {
+            AccelerationAccumulator = _blobAccelerations,
+            Edges = _uniqueBlobEdges,
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance,
+            SpringConstant = GooPhysics.SpringForce,
+            DampeningConstant = GooPhysics.DampeningConstant,
+            Positions = _blobPositions,
+            Velocity = _blobVelocities,
+         };
+         
          _jobDataFluidInfluence = new JobVelocityInfluenceFalloff
          {
             BlobPositions = _blobPositions,
@@ -531,23 +559,20 @@ namespace Ludopathic.Goo.Managers
                _blobKNNNearestNeighbourQueryResults[i] =
                   new RangeQueryResult(GooPhysics.MaxNearestNeighbours, Allocator.Persistent);
             }
-
-            //re assign?
-            
-            //nah, don't need to but do need to dirty the search
-
+        
             bNearestNeighboursDirty = true;
-            /*_jobDataDebugColorisationKNNLength.values = _blobKNNNearestNeighbourQueryResults;
-            _jobDataQueryNearestNeighboursKNN.Results = _blobKNNNearestNeighbourQueryResults;
-            _jobDataFloodFillGroupIDs. BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults;
-            _jobSpringForcesUsingKnn.BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults;
-            _jobDataFluidInfluence.BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults;*/
-            
          }
-         _jobSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
-         _jobSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
-         _jobSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
+         _jobDataSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
+         _jobDataSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
+         _jobDataSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
          
+         
+         _jobDataSpringForcesUniqueEdges.SpringConstant = GooPhysics.SpringForce;
+         _jobDataSpringForcesUniqueEdges.DampeningConstant = GooPhysics.DampeningConstant;
+         _jobDataSpringForcesUniqueEdges.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance;
+         
+   
+            
          _jobDataFluidInfluence.InfluenceModulator = GooPhysics.FluidInfluenceModulator;
 
        
@@ -593,6 +618,8 @@ namespace Ludopathic.Goo.Managers
          
          if (bNearestNeighboursDirty || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
          {
+            
+            
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
             _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
@@ -604,6 +631,14 @@ namespace Ludopathic.Goo.Managers
             JobHandle jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, jobHandleResetRadiiAndBuildKNNTree);
             _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandleQueryKNN);
             #endregion
+
+
+            if (UseUniqueEdges)
+            {
+                  
+               JobHandle jobHandFindUniqueEdges = _jobDataUniqueSprings.Schedule(_blobPositionsV3.Length, 64, _jobHandleResetJobs);
+               _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandFindUniqueEdges);
+            }
             
             bNearestNeighboursDirty = false;
          }
@@ -634,10 +669,19 @@ namespace Ludopathic.Goo.Managers
             
          
          //Do the below really rely on the group ids? Not yet, but we might find a reason for them to?
-       
-             
-         _jobHandleSpringForces = _jobSpringForcesUsingKnn.Schedule(_blobKNNNearestNeighbourQueryResults.Length, 64, _jobHandleFloodFillGroupiID);
-       
+
+
+         if (UseUniqueEdges)
+         {
+            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_blobAccelerations.Length, 64,
+               _jobHandleFloodFillGroupiID);
+         }
+         else
+         {
+            _jobHandleSpringForces = _jobDataSpringForcesUsingKnn.Schedule(_blobAccelerations.Length, 64,
+               _jobHandleFloodFillGroupiID);
+         }
+
 
          _jobHandleApplyBlobFriction = _jobDataApplyFrictionToBlobs.Schedule(_blobAccelerations.Length, 64, _jobHandleSpringForces);
          _jobHandleFluidInfluences =  _jobDataFluidInfluence.Schedule(_blobAccelerations.Length, 64, _jobHandleApplyBlobFriction);
@@ -770,7 +814,8 @@ namespace Ludopathic.Goo.Managers
          if(_numGroups.IsCreated) _numGroups.Dispose();
          if(_floodQueue.IsCreated) _floodQueue.Dispose();
          if(_blobColors.IsCreated) _blobColors.Dispose();
-       
+
+         if (_uniqueBlobEdges.IsCreated) _uniqueBlobEdges.Dispose();
          
          _knnContainer.Dispose();
          foreach (var result in _blobKNNNearestNeighbourQueryResults) {

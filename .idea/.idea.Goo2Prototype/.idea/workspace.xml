@@ -20,6 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Goo2Prototype/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/GameData/Physics/GooPhysicsSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/GameData/Physics/GooPhysicsSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/JustSettingUp.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/Ludopathic.Goo.Jobs.asmdef" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/Ludopathic.Goo.Jobs.asmdef" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
@@ -34,26 +37,29 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7d/dd176bd2/IJobParallelForTransform.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/NativeHashSet.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/02/c0b14fd2/Gradient.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/float3.gen.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.entities@0.16.0-preview.21/Unity.Entities/CopyUtility.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/8c/b1109a88/ParticleSystemJobData.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/39/77117fe0/IParticleSystemJobExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/math.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/17/ae5ca2b8/Bounds.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@8.1.0/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/6C4A58D6-3E0D-42EE-BA64-FF23AE540D29/2a/e30d639d/IJobParallelForFilter.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/02/c0b14fd2/Gradient.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/52/bd8e1c96/JobHandle.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/InputManager.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/float3.gen.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/1e/85458b88/Allocator.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/6a/e1b2c7a6/IJobParallelForTransformExtensions.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.entities@0.16.0-preview.21/Unity.Entities/CopyUtility.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7e/04573972/NativeDisableParallelForRestrictionAttribute.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/8c/b1109a88/ParticleSystemJobData.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/39/77117fe0/IParticleSystemJobExtensions.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/math.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/NativeQueue.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/cb/eed8e69b/IJob.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/8B5D99AE-2BED-4BFE-BB18-2C7D461A44CC/f9/19bb2182/EdgeCollider2D.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/e3/99769ba6/IJobParallelForExtensions.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
@@ -80,8 +86,8 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
       </list>
     </option>
   </component>
@@ -115,10 +121,10 @@
       </option>
       <method v="2" />
     </configuration>
-    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="8100">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
-      <option name="pid" />
+      <option name="pid" value="8100" />
       <option name="selectedOptions">
         <set />
       </option>
@@ -154,46 +160,46 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="976" y="506" key="ANALYSIS_DLG_com.jetbrains.rider.actions.impl.cleanup.RiderCodeCleanupAction$actionPerformed$dlg$1/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606609942546" />
-    <state width="548" height="580" key="DebuggerActiveHint" timestamp="1607200983499">
+    <state width="550" height="580" key="DebuggerActiveHint" timestamp="1609980542173">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="548" height="580" key="DebuggerActiveHint/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1607200983499" />
+    <state width="550" height="580" key="DebuggerActiveHint/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980542173" />
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog" timestamp="1606855732327">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606855732327" />
-    <state width="1252" height="123" key="GridCell.Tab.0.bottom" timestamp="1609968234257">
+    <state width="1252" height="123" key="GridCell.Tab.0.bottom" timestamp="1609980468019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234257" />
-    <state width="1252" height="123" key="GridCell.Tab.0.center" timestamp="1609968234256">
+    <state width="1252" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980468019" />
+    <state width="1252" height="123" key="GridCell.Tab.0.center" timestamp="1609980468019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234256" />
-    <state width="1252" height="123" key="GridCell.Tab.0.left" timestamp="1609968234256">
+    <state width="1252" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980468019" />
+    <state width="1252" height="123" key="GridCell.Tab.0.left" timestamp="1609980468019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234256" />
-    <state width="1252" height="123" key="GridCell.Tab.0.right" timestamp="1609968234257">
+    <state width="1252" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980468019" />
+    <state width="1252" height="123" key="GridCell.Tab.0.right" timestamp="1609980468019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234257" />
-    <state width="1252" height="123" key="GridCell.Tab.1.bottom" timestamp="1609968234257">
+    <state width="1252" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980468019" />
+    <state width="1252" height="123" key="GridCell.Tab.1.bottom" timestamp="1609980473630">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234257" />
-    <state width="1252" height="123" key="GridCell.Tab.1.center" timestamp="1609968234257">
+    <state width="1252" height="123" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980473630" />
+    <state width="1252" height="123" key="GridCell.Tab.1.center" timestamp="1609980473630">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234257" />
-    <state width="1252" height="123" key="GridCell.Tab.1.left" timestamp="1609968234257">
+    <state width="1252" height="123" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980473630" />
+    <state width="1252" height="123" key="GridCell.Tab.1.left" timestamp="1609980473630">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234257" />
-    <state width="1252" height="123" key="GridCell.Tab.1.right" timestamp="1609968234257">
+    <state width="1252" height="123" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980473630" />
+    <state width="1252" height="123" key="GridCell.Tab.1.right" timestamp="1609980473630">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609968234257" />
+    <state width="1252" height="123" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609980473630" />
     <state width="1252" height="123" key="GridCell.Tab.2.bottom" timestamp="1609968234257">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -234,14 +240,33 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1161" y="297" key="SettingsEditor/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606629004853" />
-    <state x="857" y="367" width="1281" height="918" key="find.popup" timestamp="1609916385899">
+    <state x="857" y="367" width="1281" height="918" key="find.popup" timestamp="1609971228749">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state x="857" y="367" width="1281" height="918" key="find.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609916385899" />
+    <state x="857" y="367" width="1281" height="918" key="find.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609971228749" />
     <state x="4697" y="367" width="1281" height="918" key="find.popup/0.0.2560.1400/3840.0.2560.1400@3840.0.2560.1400" timestamp="1609013569958" />
     <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup" timestamp="1609218569715">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609218569715" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs</url>
+          <line>279</line>
+          <properties documentPath="D:\Goo2Prototype\Assets\Scripts\Ludopathic\Goo\Jobs\GooJobs.cs" initialLine="279">
+            <startOffsets>
+              <option value="9021" />
+            </startOffsets>
+            <endOffsets>
+              <option value="9063" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

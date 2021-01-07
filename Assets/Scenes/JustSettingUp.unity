@@ -5192,6 +5192,7 @@ MonoBehaviour:
   RandomSeed: 0
   CameraTransform: {fileID: 941502024}
   DynamicallyUpdateNearestNeighbours: 0
+  UseUniqueEdges: 0
   CursorRadius: 14.46
   CursorAccel: 100
   CursorLinearFriction: 0.9

@@ -2,6 +2,8 @@ using KNN.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Entities;
+
 using Unity.Mathematics;
 using UnityEngine.Jobs;
 
@@ -183,6 +185,130 @@ namespace Ludopathic.Goo.Jobs
             
             VelocityInAndOut[index] = vel;
             PositionInAndOut[index] = pos;
+        }
+    }
+
+
+    public struct SpringEdge
+    {
+        public int A, B;
+
+        public SpringEdge(int a, int b)
+        {
+            A = math.min(a, b);
+            B = math.max(a, b);
+        }
+
+        public long GetHashCode()
+        {
+            return A.GetHashCode() ^ B.GetHashCode();
+        }
+    }
+    [BurstCompile]
+    public struct JobUniqueSprings : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeArray<RangeQueryResult> BlobNearestNeighbours;//The list we are iterating through in execute
+
+     
+        public NativeHashSet<long>.ParallelWriter UniqueEdges;//this won't work will it?
+
+        
+        [WriteOnly]
+        public NativeMultiHashMap<int, int>.ParallelWriter Edges;
+        
+        
+        public void Execute(int index)
+        {
+            RangeQueryResult blobNearestNeighbour = BlobNearestNeighbours[index];
+            for (int j = 0; j < blobNearestNeighbour.Length; j++)
+            {
+                int indexOfOther = blobNearestNeighbour[j];
+                if( index == indexOfOther) continue;//ignore self finds.
+                SpringEdge edge = new SpringEdge(index, indexOfOther);
+
+                long key = edge.GetHashCode();
+                if (UniqueEdges.Add(key))//only allow unique EDGES.
+                {
+                    Edges.Add(edge.A, edge.B);//Note this allowing for
+                    Edges.Add(edge.B, edge.A);
+                }
+            }
+        }
+    }
+
+    [BurstCompile]
+    public struct JobUniqueSpringForce : IJobParallelFor
+    {
+        [ReadOnly]
+        public NativeMultiHashMap<int, int> Edges;
+        
+        
+        [ReadOnly]
+        public NativeArray<float2> Positions;
+        
+        [ReadOnly]
+        public NativeArray<float2> Velocity;//used to figure out counter spring force.
+        
+        //read and write
+        public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
+
+      
+        
+        [ReadOnly]
+        public float MaxEdgeDistanceRaw;
+        
+        [ReadOnly]
+        public float SpringConstant;
+        
+        [ReadOnly]
+        public float DampeningConstant;
+        
+        //for each blob
+        public void Execute(int index)
+        {
+            if(!Edges.ContainsKey(index)) return;
+            
+            float2 thisBlobsPosition = Positions[index];
+
+            float2 thisBlobVelocity = Velocity[index];
+            float2 accumulateAcceleration = float2.zero;
+
+            
+            //How do i actually iterate through these?
+            NativeMultiHashMap<int, int>.Enumerator enumerator = Edges.GetValuesForKey(index);
+            do
+            {
+                int indexOfOtherBlob = enumerator.Current;
+
+                float2 otherBlobPos = Positions[indexOfOtherBlob];
+
+                float2 delta = otherBlobPos - thisBlobsPosition;
+                float2 dir = math.normalize(delta);
+
+                float2 otherBlobVel = Velocity[indexOfOtherBlob];
+                float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+
+
+                float deltaDist = math.length(delta); //pos b is the origin of the spring
+
+                float speedAlongSpring = math.dot(dir, velocityDelta);
+
+
+                float frac = deltaDist / MaxEdgeDistanceRaw;
+
+                float targetFrac = 0.5f;
+                float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
+
+                float constantForce = distanceFromTarget * SpringConstant;
+                float dampening = speedAlongSpring * DampeningConstant;
+
+                float2 forceAlongSpring = (dampening + constantForce) * dir;
+                accumulateAcceleration += forceAlongSpring;
+
+            } while (enumerator.MoveNext());
+
+            AccelerationAccumulator[index] += accumulateAcceleration;
         }
     }
 
