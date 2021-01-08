@@ -635,7 +635,7 @@ namespace Ludopathic.Goo.Managers
 
             if (UseUniqueEdges)
             {
-               Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
+//               Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
                _uniqueBlobEdgesHashSet.Clear();
                _uniqueBlobEdges.Clear();
                //_uniqueBlobEdges.Clear();
