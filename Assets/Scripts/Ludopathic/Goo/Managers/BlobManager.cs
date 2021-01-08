@@ -117,7 +117,9 @@ namespace Ludopathic.Goo.Managers
       private QueryRangesBatchJob _jobDataQueryNearestNeighboursKNN;
       private JobCompileUniqueEdges _jobCompileDataUniqueEdges;
 
-      private JobFloodFillIDs _jobDataFloodFillGroupIDs;//need to make this per team
+      private JobFloodFillIDsKnn _jobDataFloodFillGroupIDsKnn;//need to make this per team
+
+      private JobFloodFillIDsUniqueEdges _jobDataFloodFillGroupIDsMultiHashMap;
       
       //either or
       private JobSpringForceUsingKNNResults _jobDataSpringForcesUsingKnn;
@@ -168,6 +170,7 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleBuildKNNTree;
 
       private JobHandle _jobHandleFloodFillGroupiID;
+      
       private JobHandle _jobHandleSpringForces;
       
       private JobHandle _jobHandleSetCursorAcceleration;
@@ -364,9 +367,17 @@ namespace Ludopathic.Goo.Managers
          //build edges with existing positions
 
 
-         _jobDataFloodFillGroupIDs = new JobFloodFillIDs()
+         _jobDataFloodFillGroupIDsKnn = new JobFloodFillIDsKnn()
          {
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
+            GroupIDs = _blobGroupIDs,
+            FloodQueue = _floodQueue,
+            NumGroups = _numGroups //for safety.don't want divide by zero
+         };
+
+         _jobDataFloodFillGroupIDsMultiHashMap = new JobFloodFillIDsUniqueEdges()
+         {
+            Springs = _uniqueBlobEdges,
             GroupIDs = _blobGroupIDs,
             FloodQueue = _floodQueue,
             NumGroups = _numGroups //for safety.don't want divide by zero
@@ -582,6 +593,8 @@ namespace Ludopathic.Goo.Managers
       {
          
          //todo: break this down better. use delta time plus last sim time to figure out a list of game frames to step through, using a starting state.
+         
+         //Can be jobified, but it's not super necessary
          for (int index = 0; index < NUM_CURSORS; index++)
          {
             //_cursorTeamIDs[index] = index;
@@ -603,22 +616,16 @@ namespace Ludopathic.Goo.Managers
          #region ResetBeginningOfSimFrame
          _jobHandleResetBlobAccelerations = _jobDataResetBlobAccelerations.Schedule(_blobAccelerations.Length, 64);
          _jobHandleResetCursorAccelerations = _jobDataResetCursorAccelerations.Schedule(_cursorAccelerations.Length, 1);
-         _jobHandleResetGroupIDs = _jobDataResetGooGroups.Schedule(_blobGroupIDs.Length, 64);
-         
          #endregion //ResetBeginningOfSimFrame
-         
-         //_jobHandleResetJobs.Complete();
-
-        
+       
          //We need to copy values of positions over into the knn tree (one day we might be able to rule this out)
        
          
-         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations, _jobHandleResetGroupIDs );
+         _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetBlobAccelerations, _jobHandleResetCursorAccelerations );
          //_jobDataQueryNearestNeighboursKNN
          
          if (bNearestNeighboursDirty || DynamicallyUpdateNearestNeighbours) //HACK: see what happens when we maintain the initial lattice
          {
-            
             
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
@@ -632,18 +639,27 @@ namespace Ludopathic.Goo.Managers
             _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandleQueryKNN);
             #endregion
 
+            _jobHandleResetGroupIDs = _jobDataResetGooGroups.Schedule(_blobGroupIDs.Length, 64);
+            _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleResetGroupIDs );
 
             if (UseUniqueEdges)
             {
 //               Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
                _uniqueBlobEdgesHashSet.Clear();
                _uniqueBlobEdges.Clear();
-               //_uniqueBlobEdges.Clear();
-               //_uniqueBlobEdges.Dispose();
-               //_uniqueBlobEdges = new NativeMultiHashMap<int, int>(_blobPositions.Length * 40, Allocator.Persistent);
                JobHandle jobHandFindUniqueEdges = _jobCompileDataUniqueEdges.Schedule(_blobPositionsV3.Length, 64, _jobHandleResetJobs);
                
-               _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandFindUniqueEdges);
+               _jobHandleFloodFillGroupiID = _jobDataFloodFillGroupIDsMultiHashMap.Schedule(jobHandFindUniqueEdges);
+               _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleFloodFillGroupiID);
+               
+//               Debug.Log($"Num Groups: {_jobDataFloodFillGroupIDsMultiHashMap.NumGroups[0]}");
+            }
+            else
+            {
+               _jobHandleFloodFillGroupiID = _jobDataFloodFillGroupIDsKnn.Schedule(_jobHandleResetJobs);
+               _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, _jobHandleFloodFillGroupiID);
+               
+            //   Debug.Log($"Num Groups: {_jobDataFloodFillGroupIDsKnn.NumGroups[0]}");
             }
             
             bNearestNeighboursDirty = false;
@@ -670,20 +686,14 @@ namespace Ludopathic.Goo.Managers
          //Blob sim gets updated after cursor influence
          
          //blobs all figure out how much push and pull is coming from neighbouring blobs.
-
-         _jobHandleFloodFillGroupiID = _jobDataFloodFillGroupIDs.Schedule(_jobHandleCursorsInfluenceBlobs);
-            
-         
-         //Do the below really rely on the group ids? Not yet, but we might find a reason for them to?
-
-
          if (UseUniqueEdges)
          {
-            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_blobAccelerations.Length, 64, _jobHandleFloodFillGroupiID);
+            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
          }
          else
          {
-            _jobHandleSpringForces = _jobDataSpringForcesUsingKnn.Schedule(_blobAccelerations.Length, 64, _jobHandleFloodFillGroupiID);
+        
+            _jobHandleSpringForces = _jobDataSpringForcesUsingKnn.Schedule(_blobAccelerations.Length, 64, _jobHandleCursorsInfluenceBlobs);
          }
 
 

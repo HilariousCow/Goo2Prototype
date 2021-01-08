@@ -572,7 +572,7 @@ namespace Ludopathic.Goo.Jobs
     }
     
     [BurstCompile]
-    public struct JobFloodFillIDs : IJob
+    public struct JobFloodFillIDsKnn : IJob
     {
    
         [ReadOnly]
@@ -625,6 +625,72 @@ namespace Ludopathic.Goo.Jobs
                     
                     queue.Enqueue(neighbours[j]);
                     
+                }
+            }
+        }
+    }
+    
+     
+    [BurstCompile]
+    public struct JobFloodFillIDsUniqueEdges : IJob
+    {
+   
+        [ReadOnly]
+        public NativeMultiHashMap<int, int> Springs;
+
+        //read and write
+        public NativeArray<int> GroupIDs;
+        public NativeQueue<int> FloodQueue;
+
+        [WriteOnly]
+        public NativeArray<int> NumGroups;
+        
+        public void Execute()
+        {
+            int groupID = 0;
+
+
+           
+            for (int i = 0; i < GroupIDs.Length; i++)
+            {
+                int blobIndex =i;
+
+                for (bool Success = Springs.TryGetFirstValue(blobIndex, out int Value, out NativeMultiHashMapIterator<int> It); Success; )
+                {
+                    if (GroupIDs[blobIndex] < 0)
+                    {
+                        Fill(blobIndex, groupID, ref FloodQueue);
+                        while (!FloodQueue.IsEmpty())
+                        {
+                            int neighbourIndex = FloodQueue.Dequeue();
+                            Fill(neighbourIndex, groupID, ref FloodQueue);
+                        }
+                    }
+
+                    Success = Springs.TryGetNextValue(out Value, ref It);
+                }
+                groupID++;
+            }
+
+            //simple number of groups output
+            NumGroups[0] = groupID;
+        }
+
+        //Hmm. starting to be a mess because we don't populate KD trees per team yet (we just "borrow" z to be team and separate. Kinda hacky)
+        private void Fill(int index, int id, ref NativeQueue<int> queue)
+        {
+            if (GroupIDs[index] < 0)//only flood fill unassigned blobs
+            {
+                GroupIDs[index] = id;
+                
+                for (bool Success = Springs.TryGetFirstValue(index, out int Value, out NativeMultiHashMapIterator<int> It); Success; )
+                {
+                    int indexOfNearestNeighbour = Value;
+                    
+                    if (indexOfNearestNeighbour == index) continue;//can remove i think
+                    
+                    queue.Enqueue(indexOfNearestNeighbour);
+                    Success = Springs.TryGetNextValue(out Value, ref It);
                 }
             }
         }
