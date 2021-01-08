@@ -14,6 +14,18 @@ using UnityEngine.ParticleSystemJobs;
 using UnityEngine;
 public static class JobNativeMultiHashMapUniqueHashExtensions
     {
+        [JobProducerType(typeof(JobNativeMultiHashMapUniqueHashExtensions.JobNativeMultiHashMapMergedSharedKeyIndicesProducer<>))]
+        public interface IJobNativeMultiHashMapMergedSharedKeyIndices
+        {
+            // The first time each key (=hash) is encountered, ExecuteFirst() is invoked with corresponding value (=index).
+            void ExecuteFirst(int index);
+ 
+            // For each subsequent instance of the same key in the bucket, ExecuteNext() is invoked with the corresponding
+            // value (=index) for that key, as well as the value passed to ExecuteFirst() the first time this key
+            // was encountered (=firstIndex).
+            void ExecuteNext(int firstIndex, int index);
+        }
+        
         internal struct JobNativeMultiHashMapMergedSharedKeyIndicesProducer<TJob>
             where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
         {
@@ -304,7 +316,9 @@ namespace Ludopathic.Goo.Jobs
 
         public long CustomHashCode()
         {
-            return ((long)A).GetHashCode() ^ ((long)B).GetHashCode();
+            long a = A;
+            long b = B;
+            return (a + b) * (a + b + 1) / 2 + a;
         }
     }
     [BurstCompile]
@@ -334,28 +348,24 @@ namespace Ludopathic.Goo.Jobs
                 long hash = edge.CustomHashCode();
                 if (UniqueEdges.Add(hash))//only allow unique EDGES.
                 {
-                    Debug.Log($"Adding unique edge: {edge.A}, { edge.B} " );
+                  //  Debug.Log($"Adding unique edge: {edge.A}, { edge.B} " );
                     Edges.Add(edge.A, edge.B);
+                    
+                 //  Debug.Log($"Adding unique edge: {edge.B}, { edge.A} " );
                     Edges.Add(edge.B, edge.A);
+                }
+                else
+                {
+                  //  Debug.Log($"Hash Clash: {edge.A}, { edge.B} " );
                 }
             }
         }
     }
 
-    [JobProducerType(typeof(JobNativeMultiHashMapUniqueHashExtensions.JobNativeMultiHashMapMergedSharedKeyIndicesProducer<>))]
-    public interface IJobNativeMultiHashMapMergedSharedKeyIndices
-    {
-        // The first time each key (=hash) is encountered, ExecuteFirst() is invoked with corresponding value (=index).
-        void ExecuteFirst(int index);
- 
-        // For each subsequent instance of the same key in the bucket, ExecuteNext() is invoked with the corresponding
-        // value (=index) for that key, as well as the value passed to ExecuteFirst() the first time this key
-        // was encountered (=firstIndex).
-        void ExecuteNext(int firstIndex, int index);
-    }
+   
  
     [BurstCompile]
-    public struct JobUniqueSpringForce : IJobNativeMultiHashMapMergedSharedKeyIndices
+    public struct JobUniqueSpringForce : IJobParallelFor
     {
         [ReadOnly]
         public NativeArray<float2> Positions;
@@ -365,9 +375,12 @@ namespace Ludopathic.Goo.Jobs
         
         //read and write
         //what was the "allow writing outside of current index thingy?
-        [NativeDisableContainerSafetyRestriction]
         public NativeArray<float2> AccelerationAccumulator;//ONLY affect my own acceleration so that there's no clashing.
 
+        [ReadOnly]
+        public NativeMultiHashMap<int, int> Springs;
+        
+        //note might be allowed to combined these into goo physics settings.
         [ReadOnly]
         public float MaxEdgeDistanceRaw;
         
@@ -376,37 +389,37 @@ namespace Ludopathic.Goo.Jobs
         
         [ReadOnly]
         public float DampeningConstant;
-        
-        public void ExecuteFirst(int index)
+    
+        public void Execute(int index)
         {
-            
-            //This is the index of the current head.
-            
-            
-       //     Debug.Log($"first time index: {index}" );
+            for (bool Success = Springs.TryGetFirstValue(index, out int Value, out NativeMultiHashMapIterator<int> It); Success; )
+            {
+                AccumulateSpringForce(index, Value);
+
+                Success = Springs.TryGetNextValue(out Value, ref It);
+            }
         }
 
-        public void ExecuteNext(int firstIndex, int index)
+        void AccumulateSpringForce(int index, int otherIndex)
         {
-            //firstIndex is the index of the current head.
-            //index is the index of the tail.
-            
-            Debug.Log($"Spring first index: {firstIndex}, other index {index}" );
-            
-            float2 thisBlobsPosition = Positions[firstIndex];
-            float2 thisBlobVelocity = Velocity[firstIndex];
-        
-            float2 otherBlobPos = Positions[index];
-            float2 otherBlobVel = Velocity[index];
+            float2 thisBlobsPosition = Positions[index];
+            float2 thisBlobVelocity = Velocity[index];
 
+            //Debug.Log($"Spring first index: {index}, other index {otherIndex}" );
+            
+            float2 otherBlobPos = Positions[otherIndex];
+            float2 otherBlobVel = Velocity[otherIndex];
+
+            
+            
             //Debug only
             {
                 float3 posAViz = thisBlobsPosition.xxy;
                 posAViz.y = 0;
                 float3 posBViz = otherBlobPos.xxy;
                 posBViz.y = 0;
-                Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
-                Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
+                //Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
+               // Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
             }
 
             float2 delta = otherBlobPos - thisBlobsPosition;
@@ -427,11 +440,11 @@ namespace Ludopathic.Goo.Jobs
 
             float2 forceAlongSpring = (dampening + constantForce) * dir;
             
-          //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
-            AccelerationAccumulator[firstIndex] += forceAlongSpring;
+            //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
+            AccelerationAccumulator[index] += forceAlongSpring;
             
-         //   AccelerationAccumulator[index] -= forceAlongSpring;
-          //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
+            //   AccelerationAccumulator[index] -= forceAlongSpring;
+            //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
         }
     }
 
@@ -574,7 +587,6 @@ namespace Ludopathic.Goo.Jobs
         
         public void Execute()
         {
-            
             int groupID = 0;
             
             for (int i = 0; i < BlobNearestNeighbours.Length; i++)
@@ -616,12 +628,8 @@ namespace Ludopathic.Goo.Jobs
                 }
             }
         }
-
-  
     }
     
-    
-
     //Accumulate friction
     [BurstCompile]
     public struct JobApplyLinearAndConstantFriction : IJobParallelFor

@@ -393,7 +393,7 @@ namespace Ludopathic.Goo.Managers
          _jobDataSpringForcesUniqueEdges = new JobUniqueSpringForce
          {
             AccelerationAccumulator = _blobAccelerations,
-            
+            Springs = _uniqueBlobEdges,
             MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
@@ -679,12 +679,11 @@ namespace Ludopathic.Goo.Managers
 
          if (UseUniqueEdges)
          {
-            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_uniqueBlobEdges, 64, _jobHandleFloodFillGroupiID);
+            _jobHandleSpringForces = _jobDataSpringForcesUniqueEdges.Schedule(_blobAccelerations.Length, 64, _jobHandleFloodFillGroupiID);
          }
          else
          {
-            _jobHandleSpringForces = _jobDataSpringForcesUsingKnn.Schedule(_blobAccelerations.Length, 64,
-               _jobHandleFloodFillGroupiID);
+            _jobHandleSpringForces = _jobDataSpringForcesUsingKnn.Schedule(_blobAccelerations.Length, 64, _jobHandleFloodFillGroupiID);
          }
 
 
@@ -740,7 +739,7 @@ namespace Ludopathic.Goo.Managers
          _jobHandleBuildAABB.Complete();
          
          
-         Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
+//         Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
          #endregion // Job Kickoff and Dependancy
 
        

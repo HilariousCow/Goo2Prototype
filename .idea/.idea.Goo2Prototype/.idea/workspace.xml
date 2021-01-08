@@ -19,7 +19,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="" />
+    <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,12 +36,16 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/02/c0b14fd2/Gradient.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/NativeHashMapExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/UnsafeMultiHashMap.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/InputSystem/IInputSource.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/UnsafeHashMap.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/float3.gen.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.entities@0.16.0-preview.21/Unity.Entities/CopyUtility.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/8c/b1109a88/ParticleSystemJobData.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/524DB921-1520-42B4-B271-1B24FC3C44D3/39/77117fe0/IParticleSystemJobExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.mathematics@1.2.1/Unity.Mathematics/math.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/NativeMultiHashMap.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/17/ae5ca2b8/Bounds.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@8.1.0/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/6C4A58D6-3E0D-42EE-BA64-FF23AE540D29/2a/e30d639d/IJobParallelForFilter.cs" root0="SKIP_HIGHLIGHTING" />
@@ -76,11 +82,11 @@
         <option value="$PROJECT_DIR$/Assets/SelfCollision.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/Demo/KnnApiDemo.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
       </list>
     </option>
   </component>
@@ -161,70 +167,70 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606855732327" />
-    <state width="1252" height="123" key="GridCell.Tab.0.bottom" timestamp="1609981005590">
+    <state width="1252" height="123" key="GridCell.Tab.0.bottom" timestamp="1609985274137">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005590" />
-    <state width="1252" height="123" key="GridCell.Tab.0.center" timestamp="1609981005590">
+    <state width="1252" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
+    <state width="1252" height="123" key="GridCell.Tab.0.center" timestamp="1609985274137">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005590" />
-    <state width="1252" height="123" key="GridCell.Tab.0.left" timestamp="1609981005590">
+    <state width="1252" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
+    <state width="1252" height="123" key="GridCell.Tab.0.left" timestamp="1609985274137">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005590" />
-    <state width="1252" height="123" key="GridCell.Tab.0.right" timestamp="1609981005590">
+    <state width="1252" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
+    <state width="1252" height="123" key="GridCell.Tab.0.right" timestamp="1609985274137">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005590" />
-    <state width="1252" height="123" key="GridCell.Tab.1.bottom" timestamp="1609981009561">
+    <state width="1252" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
+    <state width="1252" height="123" key="GridCell.Tab.1.bottom" timestamp="1609985319146">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981009561" />
-    <state width="1252" height="123" key="GridCell.Tab.1.center" timestamp="1609981009561">
+    <state width="1252" height="123" key="GridCell.Tab.1.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985319146" />
+    <state width="1252" height="123" key="GridCell.Tab.1.center" timestamp="1609985319146">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981009561" />
-    <state width="1252" height="123" key="GridCell.Tab.1.left" timestamp="1609981009561">
+    <state width="1252" height="123" key="GridCell.Tab.1.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985319146" />
+    <state width="1252" height="123" key="GridCell.Tab.1.left" timestamp="1609985319146">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981009561" />
-    <state width="1252" height="123" key="GridCell.Tab.1.right" timestamp="1609981009561">
+    <state width="1252" height="123" key="GridCell.Tab.1.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985319146" />
+    <state width="1252" height="123" key="GridCell.Tab.1.right" timestamp="1609985319146">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981009561" />
-    <state width="1252" height="123" key="GridCell.Tab.2.bottom" timestamp="1609981005406">
+    <state width="1252" height="123" key="GridCell.Tab.1.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985319146" />
+    <state width="1252" height="123" key="GridCell.Tab.2.bottom" timestamp="1609985274020">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.2.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005406" />
-    <state width="1252" height="123" key="GridCell.Tab.2.center" timestamp="1609981005405">
+    <state width="1252" height="123" key="GridCell.Tab.2.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274020" />
+    <state width="1252" height="123" key="GridCell.Tab.2.center" timestamp="1609985274019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.2.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005405" />
-    <state width="1252" height="123" key="GridCell.Tab.2.left" timestamp="1609981005405">
+    <state width="1252" height="123" key="GridCell.Tab.2.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274019" />
+    <state width="1252" height="123" key="GridCell.Tab.2.left" timestamp="1609985274019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.2.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005405" />
-    <state width="1252" height="123" key="GridCell.Tab.2.right" timestamp="1609981005406">
+    <state width="1252" height="123" key="GridCell.Tab.2.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274019" />
+    <state width="1252" height="123" key="GridCell.Tab.2.right" timestamp="1609985274019">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.2.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005406" />
-    <state width="1252" height="123" key="GridCell.Tab.3.bottom" timestamp="1609981005406">
+    <state width="1252" height="123" key="GridCell.Tab.2.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274019" />
+    <state width="1252" height="123" key="GridCell.Tab.3.bottom" timestamp="1609985274020">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.3.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005406" />
-    <state width="1252" height="123" key="GridCell.Tab.3.center" timestamp="1609981005406">
+    <state width="1252" height="123" key="GridCell.Tab.3.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274020" />
+    <state width="1252" height="123" key="GridCell.Tab.3.center" timestamp="1609985274020">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.3.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005406" />
-    <state width="1252" height="123" key="GridCell.Tab.3.left" timestamp="1609981005406">
+    <state width="1252" height="123" key="GridCell.Tab.3.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274020" />
+    <state width="1252" height="123" key="GridCell.Tab.3.left" timestamp="1609985274020">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.3.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005406" />
-    <state width="1252" height="123" key="GridCell.Tab.3.right" timestamp="1609981005406">
+    <state width="1252" height="123" key="GridCell.Tab.3.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274020" />
+    <state width="1252" height="123" key="GridCell.Tab.3.right" timestamp="1609985274020">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.3.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609981005406" />
+    <state width="1252" height="123" key="GridCell.Tab.3.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274020" />
     <state x="1074" y="307" key="RiderGenerateDialog" timestamp="1609984107217">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -233,6 +239,10 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1161" y="297" key="SettingsEditor/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606629004853" />
+    <state x="93" y="93" width="2375" height="1215" key="VCS.FileHistoryDialog" timestamp="1610080858411">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="93" y="93" width="2375" height="1215" key="VCS.FileHistoryDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1610080858411" />
     <state x="857" y="367" width="1281" height="918" key="find.popup" timestamp="1609971228749">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
