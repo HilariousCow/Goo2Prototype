@@ -107,7 +107,7 @@ namespace Ludopathic.Goo.Managers
       private MemsetNativeArray<float2> _jobDataResetCursorAccelerations;
       private MemsetNativeArray<int> _jobDataResetGooGroups;//what if we don't totally flush this every time? Maybe identify grouped blobs that are no longer connected to their established group?
       
-      private MemsetNativeArray<float> _jobDataCopyBlobRadii;
+   //   private MemsetNativeArray<float> _jobDataCopyBlobRadii;
       private JobCopyBlobInfoToFloat3 _jobDataCopyBlobInfoToFloat3;
       
       
@@ -328,7 +328,7 @@ namespace Ludopathic.Goo.Managers
          _jobDataResetCursorAccelerations = new MemsetNativeArray<float2> {Source = _cursorAccelerations, Value = float2.zero};
 
          _jobDataResetGooGroups = new MemsetNativeArray<int> {Source = _blobGroupIDs, Value = -1};
-         _jobDataCopyBlobRadii = new MemsetNativeArray<float> {Source = _blobRadii, Value = GooPhysics.MaxSpringDistance};
+      //   _jobDataCopyBlobRadii = new MemsetNativeArray<float> {Source = _blobRadii, Value = GooPhysics.MaxSpringDistance};
          
          _jobDataCopyBlobInfoToFloat3 = new JobCopyBlobInfoToFloat3
          {
@@ -357,7 +357,8 @@ namespace Ludopathic.Goo.Managers
          _jobDataQueryNearestNeighboursKNN = new QueryRangesBatchJob{ 
             m_container = _knnContainer,
             m_queryPositions = _blobPositionsV3, 
-            m_queryRadii = _blobRadii,
+            m_SearchRadius = GooPhysics.MaxSpringDistance,
+            
             Results = _blobKNNNearestNeighbourQueryResults
             
          };
@@ -548,12 +549,12 @@ namespace Ludopathic.Goo.Managers
          _jobDataApplyFrictionToBlobs.DeltaTime = deltaTime;
          _jobDataUpdateBlobPositions.DeltaTime = deltaTime;
 
-         _jobDataCopyBlobRadii.Value = GooPhysics.MaxSpringDistance;
+        // _jobDataCopyBlobRadii.Value = GooPhysics.MaxSpringDistance;
          
          _jobDataApplyFrictionToBlobs.ConstantFriction = GooPhysics.ConstantFriction;
          _jobDataApplyFrictionToBlobs.LinearFriction = GooPhysics.ConstantFriction;
          
-         //_jobDataQueryNearestNeighboursKNN.m_range = GooPhysics.MaxSpringDistance;//replace with a full copy job
+         _jobDataQueryNearestNeighboursKNN.m_SearchRadius = GooPhysics.MaxSpringDistance;//replace with a full copy job
 
          bool needsReallocation = GooPhysics.MaxNearestNeighbours != _blobKNNNearestNeighbourQueryResults[0].m_capacity;
 
@@ -630,12 +631,12 @@ namespace Ludopathic.Goo.Managers
             #region KNN Tree
             _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
             _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
-            _jobHandleSetBlobRadii = _jobDataCopyBlobRadii.Schedule(_blobRadii.Length, 64);
+        //    _jobHandleSetBlobRadii = _jobDataCopyBlobRadii.Schedule(_blobRadii.Length, 64);
             
-            JobHandle jobHandleResetRadiiAndBuildKNNTree =  JobHandle.CombineDependencies(_jobHandleSetBlobRadii, _jobHandleBuildKNNTree);
+           // JobHandle jobHandleResetRadiiAndBuildKNNTree =  JobHandle.CombineDependencies(_jobHandleBuildKNNTree, _jobHandleBuildKNNTree);
             
             //now query nearest neighbours
-            JobHandle jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, jobHandleResetRadiiAndBuildKNNTree);
+            JobHandle jobHandleQueryKNN = _jobDataQueryNearestNeighboursKNN.Schedule(_blobPositionsV3.Length, 64, _jobHandleBuildKNNTree);
             _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandleQueryKNN);
             #endregion
 

@@ -44,6 +44,7 @@
               <e p="Jobs" t="Include">
                 <e p="GooJobs.cs" t="Include" />
                 <e p="Ludopathic.Goo.Jobs.asmdef" t="Include" />
+                <e p="NativeMultiHashMapExtensions.cs" t="Include" />
               </e>
               <e p="Managers" t="Include">
                 <e p="BlobManager.cs" t="Include" />

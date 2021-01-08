@@ -20,7 +20,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +34,7 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7d/dd176bd2/IJobParallelForTransform.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/NativeHashSet.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/0f/381a0dc0/JobsUtility.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/02/c0b14fd2/Gradient.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" root0="FORCE_HIGHLIGHTING" />
@@ -57,6 +59,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/6a/e1b2c7a6/IJobParallelForTransformExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/7e/04573972/NativeDisableParallelForRestrictionAttribute.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.collections@0.14.0-preview.16/Unity.Collections/NativeQueue.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/NativeMultiHashMapExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/cb/eed8e69b/IJob.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/8B5D99AE-2BED-4BFE-BB18-2C7D461A44CC/f9/19bb2182/EdgeCollider2D.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/9584DE34-44B5-42AB-BB1A-D4BB43A7137F/e3/99769ba6/IJobParallelForExtensions.cs" root0="SKIP_HIGHLIGHTING" />
@@ -83,10 +86,11 @@
         <option value="$PROJECT_DIR$/Assets/KNN-main/Demo/KnnVisualizationDemo.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/Demo/KnnApiDemo.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" />
-        <option value="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/NativeMultiHashMapExtensions.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
+        <option value="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
       </list>
     </option>
   </component>
