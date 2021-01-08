@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxNearestNeighbours: 7
   MaxSpringDistance: 0.92
-  SpringForce: 6.9
+  SpringForce: 48.4
   DampeningConstant: 1.66
   LinearFriction: 0.122
-  ConstantFriction: 1.8
+  ConstantFriction: 2.6
   FluidInfluenceModulator: 0

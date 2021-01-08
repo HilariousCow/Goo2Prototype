@@ -394,6 +394,8 @@ namespace Ludopathic.Goo.Jobs
         {
             float2 thisBlobsPosition = Positions[index];
             float2 thisBlobVelocity = Velocity[index];
+            float2 forceAccumulator = float2.zero;
+            
             for (bool Success = Springs.TryGetFirstValue(index, out int otherIndex, out NativeMultiHashMapIterator<int> It); Success; )
             {
               
@@ -416,31 +418,36 @@ namespace Ludopathic.Goo.Jobs
                 }*/
 
                 float2 delta = otherBlobPos - thisBlobsPosition;
-                float2 velocityDelta = otherBlobVel - thisBlobVelocity;
-            
-                float2 dir = math.normalize(delta);
 
-                float deltaDist = math.length(delta); //pos b is the origin of the spring
+                if (math.lengthsq(delta) > 0.1f * 0.1f)
+                {
+                    float2 velocityDelta = otherBlobVel - thisBlobVelocity;
 
-                float speedAlongSpring = math.dot(dir, velocityDelta);
-                float frac = deltaDist / MaxEdgeDistanceRaw;
+                    float2 dir = math.normalize(delta);
 
-                float targetFrac = 0.5f;
-                float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
+                    float deltaDist = math.length(delta); //pos b is the origin of the spring
 
-                float constantForce = distanceFromTarget * SpringConstant;
-                float dampening = speedAlongSpring * DampeningConstant;
+                    float speedAlongSpring = math.dot(dir, velocityDelta);
+                    float frac = deltaDist / MaxEdgeDistanceRaw;
 
-                float2 forceAlongSpring = (dampening + constantForce) * dir;
-            
+                    float targetFrac = 0.5f;
+                    float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
+
+                    float constantForce = distanceFromTarget * SpringConstant;
+                    float dampening = speedAlongSpring * DampeningConstant;
+
+                    float2 forceAlongSpring = (dampening + constantForce) * dir;
+                    forceAccumulator += forceAlongSpring;
+                }
                 //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
-                AccelerationAccumulator[index] += forceAlongSpring;
+             
             
                 //   AccelerationAccumulator[index] -= forceAlongSpring;
                 //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
 
                 Success = Springs.TryGetNextValue(out otherIndex, ref It);
             }
+            AccelerationAccumulator[index] += forceAccumulator;
         }
 
         void AccumulateSpringForce(int index, int otherIndex)

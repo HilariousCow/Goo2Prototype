@@ -390,7 +390,7 @@ namespace Ludopathic.Goo.Managers
          {
             AccelerationAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/,
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance  * 2.0f,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
@@ -408,7 +408,7 @@ namespace Ludopathic.Goo.Managers
          {
             AccelerationAccumulator = _blobAccelerations,
             Springs = _uniqueBlobEdges,
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/,
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance  * 2.0f,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
@@ -631,7 +631,7 @@ namespace Ludopathic.Goo.Managers
          {
             
             #region KNN Tree
-            _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64);
+            _jobHandleCopyBlobInfoToFloat3 = _jobDataCopyBlobInfoToFloat3.Schedule(_blobPositionsV3.Length, 64,_jobHandleResetJobs);
             _jobHandleBuildKNNTree = _jobBuildKnnTree.Schedule(_jobHandleCopyBlobInfoToFloat3);
         //    _jobHandleSetBlobRadii = _jobDataCopyBlobRadii.Schedule(_blobRadii.Length, 64);
             
@@ -648,7 +648,7 @@ namespace Ludopathic.Goo.Managers
             if (UseUniqueEdges)
             {
 //               Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
-               _uniqueBlobEdgesHashSet.Clear();
+               _uniqueBlobEdgesHashSet.Clear();//maybe if this was a job it'd be less slow?
                _uniqueBlobEdges.Clear();
                JobHandle jobHandFindUniqueEdges = _jobCompileDataUniqueEdges.Schedule(_blobPositionsV3.Length, 64, _jobHandleResetJobs);
                
