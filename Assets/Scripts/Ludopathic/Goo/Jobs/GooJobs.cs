@@ -394,60 +394,101 @@ namespace Ludopathic.Goo.Jobs
         {
             float2 thisBlobsPosition = Positions[index];
             float2 thisBlobVelocity = Velocity[index];
-            
             for (bool Success = Springs.TryGetFirstValue(index, out int otherIndex, out NativeMultiHashMapIterator<int> It); Success; )
             {
+              
+
+                //Debug.Log($"Spring first index: {index}, other index {otherIndex}" );
+            
                 float2 otherBlobPos = Positions[otherIndex];
                 float2 otherBlobVel = Velocity[otherIndex];
 
+            
+            
                 //Debug only
-              /*  {
+            /*    {
                     float3 posAViz = thisBlobsPosition.xxy;
                     posAViz.y = 0;
                     float3 posBViz = otherBlobPos.xxy;
                     posBViz.y = 0;
                     Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
-                    Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
+                     Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
                 }*/
 
                 float2 delta = otherBlobPos - thisBlobsPosition;
+                float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+            
+                float2 dir = math.normalize(delta);
 
-                if (math.lengthsq(delta) > 0.001f)
-                {
-                    float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+                float deltaDist = math.length(delta); //pos b is the origin of the spring
 
-                    float2 dir = math.normalize(delta);
+                float speedAlongSpring = math.dot(dir, velocityDelta);
+                float frac = deltaDist / MaxEdgeDistanceRaw;
 
-                    float deltaDist = math.length(delta); //pos b is the origin of the spring
+                float targetFrac = 0.5f;
+                float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
 
-                    float speedAlongSpring = math.dot(dir, velocityDelta);
-                    float frac = deltaDist / MaxEdgeDistanceRaw;
+                float constantForce = distanceFromTarget * SpringConstant;
+                float dampening = speedAlongSpring * DampeningConstant;
 
-                    float targetFrac = 0.8f;
-                    float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
+                float2 forceAlongSpring = (dampening + constantForce) * dir;
+            
+                //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
+                AccelerationAccumulator[index] += forceAlongSpring;
+            
+                //   AccelerationAccumulator[index] -= forceAlongSpring;
+                //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
 
-                    float constantForce = distanceFromTarget * SpringConstant;
-                    float dampening = speedAlongSpring * DampeningConstant;
-
-                    float2 forceAlongSpring = (dampening + constantForce) * dir;
-
-                    //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
-                    AccelerationAccumulator[index] += forceAlongSpring;
-
-                    //   AccelerationAccumulator[index] -= forceAlongSpring;
-                    //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
-
-                  
-                }
-                else
-                {
-                    //todo deal with collision 
-                    //probably wants to be a separate pass
-                }
                 Success = Springs.TryGetNextValue(out otherIndex, ref It);
             }
         }
 
+        void AccumulateSpringForce(int index, int otherIndex)
+        {
+            float2 thisBlobsPosition = Positions[index];
+            float2 thisBlobVelocity = Velocity[index];
+
+            //Debug.Log($"Spring first index: {index}, other index {otherIndex}" );
+            
+            float2 otherBlobPos = Positions[otherIndex];
+            float2 otherBlobVel = Velocity[otherIndex];
+
+            
+            
+            //Debug only
+            {
+                float3 posAViz = thisBlobsPosition.xxy;
+                posAViz.y = 0;
+                float3 posBViz = otherBlobPos.xxy;
+                posBViz.y = 0;
+                //Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
+               // Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
+            }
+
+            float2 delta = otherBlobPos - thisBlobsPosition;
+            float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+            
+            float2 dir = math.normalize(delta);
+
+            float deltaDist = math.length(delta); //pos b is the origin of the spring
+
+            float speedAlongSpring = math.dot(dir, velocityDelta);
+            float frac = deltaDist / MaxEdgeDistanceRaw;
+
+            float targetFrac = 0.5f;
+            float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
+
+            float constantForce = distanceFromTarget * SpringConstant;
+            float dampening = speedAlongSpring * DampeningConstant;
+
+            float2 forceAlongSpring = (dampening + constantForce) * dir;
+            
+            //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
+            AccelerationAccumulator[index] += forceAlongSpring;
+            
+            //   AccelerationAccumulator[index] -= forceAlongSpring;
+            //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
+        }
     }
 
     [BurstCompile]
