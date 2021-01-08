@@ -401,14 +401,14 @@ namespace Ludopathic.Goo.Jobs
                 float2 otherBlobVel = Velocity[otherIndex];
 
                 //Debug only
-                {
+              /*  {
                     float3 posAViz = thisBlobsPosition.xxy;
                     posAViz.y = 0;
                     float3 posBViz = otherBlobPos.xxy;
                     posBViz.y = 0;
-                    //Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
-                    // Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
-                }
+                    Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
+                    Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
+                }*/
 
                 float2 delta = otherBlobPos - thisBlobsPosition;
 
@@ -437,14 +437,14 @@ namespace Ludopathic.Goo.Jobs
                     //   AccelerationAccumulator[index] -= forceAlongSpring;
                     //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
 
-                    Success = Springs.TryGetNextValue(out otherIndex, ref It);
+                  
                 }
                 else
                 {
                     //todo deal with collision 
                     //probably wants to be a separate pass
                 }
-                
+                Success = Springs.TryGetNextValue(out otherIndex, ref It);
             }
         }
 
