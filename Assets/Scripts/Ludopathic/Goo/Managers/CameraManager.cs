@@ -31,7 +31,7 @@ namespace Ludopathic.Goo.Managers
             float screenRatio = Screen.width / (float)Screen.height;
             float largerSide = Mathf.Max(bounds.size.x, bounds.size.z * screenRatio);
 
-            float heightAbove = Mathf.Atan(_camera.fieldOfView) * largerSide ;
+            float heightAbove = Mathf.Atan(_camera.fieldOfView * 0.5f) * largerSide  ;
             
             _transform.position = bounds.center + Vector3.up * heightAbove;
             _transform.rotation = Quaternion.LookRotation( bounds.center-transform.position, Vector3.forward);

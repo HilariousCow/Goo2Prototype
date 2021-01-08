@@ -115,7 +115,7 @@ namespace Ludopathic.Goo.Managers
       private KnnRebuildJob _jobBuildKnnTree;
       
       private QueryRangesBatchJob _jobDataQueryNearestNeighboursKNN;
-      private JobUniqueSprings _jobDataUniqueSprings;
+      private JobCompileUniqueEdges _jobCompileDataUniqueEdges;
 
       private JobFloodFillIDs _jobDataFloodFillGroupIDs;//need to make this per team
       
@@ -376,14 +376,14 @@ namespace Ludopathic.Goo.Managers
          {
             AccelerationAccumulator = _blobAccelerations,
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f,
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
             Velocity = _blobVelocities,
          };
 
-          _jobDataUniqueSprings = new JobUniqueSprings
+          _jobCompileDataUniqueEdges = new JobCompileUniqueEdges
          {
             BlobNearestNeighbours = _blobKNNNearestNeighbourQueryResults,
             Edges = _uniqueBlobEdges.AsParallelWriter(),
@@ -394,7 +394,7 @@ namespace Ludopathic.Goo.Managers
          {
             AccelerationAccumulator = _blobAccelerations,
             
-            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f,
+            MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/,
             SpringConstant = GooPhysics.SpringForce,
             DampeningConstant = GooPhysics.DampeningConstant,
             Positions = _blobPositions,
@@ -564,12 +564,12 @@ namespace Ludopathic.Goo.Managers
          }
          _jobDataSpringForcesUsingKnn.SpringConstant = GooPhysics.SpringForce;
          _jobDataSpringForcesUsingKnn.DampeningConstant = GooPhysics.DampeningConstant;
-         _jobDataSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f;
+         _jobDataSpringForcesUsingKnn.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/;
          
          
          _jobDataSpringForcesUniqueEdges.SpringConstant = GooPhysics.SpringForce;
          _jobDataSpringForcesUniqueEdges.DampeningConstant = GooPhysics.DampeningConstant;
-         _jobDataSpringForcesUniqueEdges.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance * 2.0f;
+         _jobDataSpringForcesUniqueEdges.MaxEdgeDistanceRaw = GooPhysics.MaxSpringDistance /* * 2.0f*/;
          
    
             
@@ -635,8 +635,14 @@ namespace Ludopathic.Goo.Managers
 
             if (UseUniqueEdges)
             {
+               Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
+               _uniqueBlobEdgesHashSet.Clear();
                _uniqueBlobEdges.Clear();
-               JobHandle jobHandFindUniqueEdges = _jobDataUniqueSprings.Schedule(_blobPositionsV3.Length, 64, _jobHandleResetJobs);
+               //_uniqueBlobEdges.Clear();
+               //_uniqueBlobEdges.Dispose();
+               //_uniqueBlobEdges = new NativeMultiHashMap<int, int>(_blobPositions.Length * 40, Allocator.Persistent);
+               JobHandle jobHandFindUniqueEdges = _jobCompileDataUniqueEdges.Schedule(_blobPositionsV3.Length, 64, _jobHandleResetJobs);
+               
                _jobHandleResetJobs = JobHandle.CombineDependencies(_jobHandleResetJobs, jobHandFindUniqueEdges);
             }
             
@@ -733,6 +739,8 @@ namespace Ludopathic.Goo.Managers
          _jobHandleBuildAABB = _jobDataCalculateAABB.Schedule(   _jobHandleUpdateBlobPositions);
          _jobHandleBuildAABB.Complete();
          
+         
+         Debug.Log($"Unique Blob edges length { _uniqueBlobEdges.Count() }");
          #endregion // Job Kickoff and Dependancy
 
        

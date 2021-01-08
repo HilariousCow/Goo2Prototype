@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3612f1049dfb224e864b06e61d4edbc, type: 3}
   m_Name: GooPhysicsSettings
   m_EditorClassIdentifier: 
-  MaxNearestNeighbours: 9
-  MaxSpringDistance: 1.01
-  SpringForce: 61
-  DampeningConstant: 0.6
+  MaxNearestNeighbours: 7
+  MaxSpringDistance: 5.58
+  SpringForce: 17
+  DampeningConstant: 1.33
   LinearFriction: 0.122
-  ConstantFriction: 7.8
+  ConstantFriction: 1
   FluidInfluenceModulator: 0
