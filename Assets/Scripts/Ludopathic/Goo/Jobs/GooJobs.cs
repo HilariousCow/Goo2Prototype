@@ -392,60 +392,62 @@ namespace Ludopathic.Goo.Jobs
     
         public void Execute(int index)
         {
-            for (bool Success = Springs.TryGetFirstValue(index, out int Value, out NativeMultiHashMapIterator<int> It); Success; )
-            {
-                AccumulateSpringForce(index, Value);
-
-                Success = Springs.TryGetNextValue(out Value, ref It);
-            }
-        }
-
-        void AccumulateSpringForce(int index, int otherIndex)
-        {
             float2 thisBlobsPosition = Positions[index];
             float2 thisBlobVelocity = Velocity[index];
-
-            //Debug.Log($"Spring first index: {index}, other index {otherIndex}" );
             
-            float2 otherBlobPos = Positions[otherIndex];
-            float2 otherBlobVel = Velocity[otherIndex];
-
-            
-            
-            //Debug only
+            for (bool Success = Springs.TryGetFirstValue(index, out int otherIndex, out NativeMultiHashMapIterator<int> It); Success; )
             {
-                float3 posAViz = thisBlobsPosition.xxy;
-                posAViz.y = 0;
-                float3 posBViz = otherBlobPos.xxy;
-                posBViz.y = 0;
-                //Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
-               // Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
+                float2 otherBlobPos = Positions[otherIndex];
+                float2 otherBlobVel = Velocity[otherIndex];
+
+                //Debug only
+                {
+                    float3 posAViz = thisBlobsPosition.xxy;
+                    posAViz.y = 0;
+                    float3 posBViz = otherBlobPos.xxy;
+                    posBViz.y = 0;
+                    //Debug.DrawLine(posAViz, math.lerp(posAViz, posBViz, 0.45f), Color.yellow);
+                    // Debug.DrawLine(posBViz, math.lerp(posAViz, posBViz, 0.55f), Color.blue);
+                }
+
+                float2 delta = otherBlobPos - thisBlobsPosition;
+
+                if (math.lengthsq(delta) > 0.001f)
+                {
+                    float2 velocityDelta = otherBlobVel - thisBlobVelocity;
+
+                    float2 dir = math.normalize(delta);
+
+                    float deltaDist = math.length(delta); //pos b is the origin of the spring
+
+                    float speedAlongSpring = math.dot(dir, velocityDelta);
+                    float frac = deltaDist / MaxEdgeDistanceRaw;
+
+                    float targetFrac = 0.8f;
+                    float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
+
+                    float constantForce = distanceFromTarget * SpringConstant;
+                    float dampening = speedAlongSpring * DampeningConstant;
+
+                    float2 forceAlongSpring = (dampening + constantForce) * dir;
+
+                    //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
+                    AccelerationAccumulator[index] += forceAlongSpring;
+
+                    //   AccelerationAccumulator[index] -= forceAlongSpring;
+                    //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
+
+                    Success = Springs.TryGetNextValue(out otherIndex, ref It);
+                }
+                else
+                {
+                    //todo deal with collision 
+                    //probably wants to be a separate pass
+                }
+                
             }
-
-            float2 delta = otherBlobPos - thisBlobsPosition;
-            float2 velocityDelta = otherBlobVel - thisBlobVelocity;
-            
-            float2 dir = math.normalize(delta);
-
-            float deltaDist = math.length(delta); //pos b is the origin of the spring
-
-            float speedAlongSpring = math.dot(dir, velocityDelta);
-            float frac = deltaDist / MaxEdgeDistanceRaw;
-
-            float targetFrac = 1f;
-            float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
-
-            float constantForce = distanceFromTarget * SpringConstant;
-            float dampening = speedAlongSpring * DampeningConstant;
-
-            float2 forceAlongSpring = (dampening + constantForce) * dir;
-            
-            //  Debug.Log($"Acceleration Accumulator[{firstIndex}] before: {AccelerationAccumulator[firstIndex] }" );
-            AccelerationAccumulator[index] += forceAlongSpring;
-            
-            //   AccelerationAccumulator[index] -= forceAlongSpring;
-            //  Debug.Log($"Acceleration Accumulator[{firstIndex}] after: {AccelerationAccumulator[firstIndex] }" );
         }
+
     }
 
     [BurstCompile]
@@ -530,7 +532,7 @@ namespace Ludopathic.Goo.Jobs
                     
                 float frac = deltaDist / MaxEdgeDistanceRaw;
 
-                float targetFrac = 1f;
+                float targetFrac = 0.8f;
                 float distanceFromTarget = (frac-targetFrac) * 2.0f;//just position based.
 
                 //float invFrac = math.clamp( 1.0f - frac, 0.0f, 1.0f);
@@ -654,22 +656,16 @@ namespace Ludopathic.Goo.Jobs
             for (int i = 0; i < GroupIDs.Length; i++)
             {
                 int blobIndex =i;
-
-                for (bool Success = Springs.TryGetFirstValue(blobIndex, out int Value, out NativeMultiHashMapIterator<int> It); Success; )
+                if (GroupIDs[blobIndex] < 0)
                 {
-                    if (GroupIDs[blobIndex] < 0)
+                    Fill(blobIndex, groupID, ref FloodQueue);
+                    while (!FloodQueue.IsEmpty())
                     {
-                        Fill(blobIndex, groupID, ref FloodQueue);
-                        while (!FloodQueue.IsEmpty())
-                        {
-                            int neighbourIndex = FloodQueue.Dequeue();
-                            Fill(neighbourIndex, groupID, ref FloodQueue);
-                        }
+                        int neighbourIndex = FloodQueue.Dequeue();
+                        Fill(neighbourIndex, groupID, ref FloodQueue);
                     }
-
-                    Success = Springs.TryGetNextValue(out Value, ref It);
+                    groupID++;
                 }
-                groupID++;
             }
 
             //simple number of groups output

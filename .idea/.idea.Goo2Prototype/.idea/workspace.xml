@@ -20,8 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e75d0a-a8c1-4eb5-8a49-f6c0719ca087" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,9 +87,9 @@
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Data/GooPhysicsSettings.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/CameraManager.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/NativeMultiHashMapExtensions.cs" />
-        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
         <option value="$PROJECT_DIR$/Assets/KNN-main/KnnJobs.cs" />
         <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Managers/BlobManager.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs" />
       </list>
     </option>
   </component>
@@ -124,10 +123,10 @@
       </option>
       <method v="2" />
     </configuration>
-    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="8100">
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost" ignored-value-for-modified-check="20644">
       <option name="allowRunningInParallel" value="false" />
       <option name="listenPortForConnections" value="false" />
-      <option name="pid" value="8100" />
+      <option name="pid" value="20644" />
       <option name="selectedOptions">
         <set />
       </option>
@@ -171,22 +170,22 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="93" y="93" width="2375" height="1215" key="DiffContextDialog/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1606855732327" />
-    <state width="1252" height="123" key="GridCell.Tab.0.bottom" timestamp="1609985274137">
+    <state width="1252" height="123" key="GridCell.Tab.0.bottom" timestamp="1610092662806">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
-    <state width="1252" height="123" key="GridCell.Tab.0.center" timestamp="1609985274137">
+    <state width="1252" height="123" key="GridCell.Tab.0.bottom/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1610092662806" />
+    <state width="1252" height="123" key="GridCell.Tab.0.center" timestamp="1610092662805">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
-    <state width="1252" height="123" key="GridCell.Tab.0.left" timestamp="1609985274137">
+    <state width="1252" height="123" key="GridCell.Tab.0.center/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1610092662805" />
+    <state width="1252" height="123" key="GridCell.Tab.0.left" timestamp="1610092662805">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
-    <state width="1252" height="123" key="GridCell.Tab.0.right" timestamp="1609985274137">
+    <state width="1252" height="123" key="GridCell.Tab.0.left/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1610092662805" />
+    <state width="1252" height="123" key="GridCell.Tab.0.right" timestamp="1610092662805">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
-    <state width="1252" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609985274137" />
+    <state width="1252" height="123" key="GridCell.Tab.0.right/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1610092662805" />
     <state width="1252" height="123" key="GridCell.Tab.1.bottom" timestamp="1609985319146">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -256,5 +255,24 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="859" y="308" width="840" height="1034" key="search.everywhere.popup/0.0.2560.1400/3840.0.2560.1400@0.0.2560.1400" timestamp="1609218569715" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Assets/Scripts/Ludopathic/Goo/Jobs/GooJobs.cs</url>
+          <line>649</line>
+          <properties documentPath="D:\Goo2Prototype\Assets\Scripts\Ludopathic\Goo\Jobs\GooJobs.cs" initialLine="649">
+            <startOffsets>
+              <option value="24036" />
+            </startOffsets>
+            <endOffsets>
+              <option value="24052" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
