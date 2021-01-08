@@ -432,7 +432,7 @@ namespace Ludopathic.Goo.Jobs
             float speedAlongSpring = math.dot(dir, velocityDelta);
             float frac = deltaDist / MaxEdgeDistanceRaw;
 
-            float targetFrac = 0.5f;
+            float targetFrac = 1f;
             float distanceFromTarget = (frac - targetFrac) * 2.0f; //just position based.
 
             float constantForce = distanceFromTarget * SpringConstant;
@@ -530,7 +530,7 @@ namespace Ludopathic.Goo.Jobs
                     
                 float frac = deltaDist / MaxEdgeDistanceRaw;
 
-                float targetFrac = 0.5f;
+                float targetFrac = 1f;
                 float distanceFromTarget = (frac-targetFrac) * 2.0f;//just position based.
 
                 //float invFrac = math.clamp( 1.0f - frac, 0.0f, 1.0f);

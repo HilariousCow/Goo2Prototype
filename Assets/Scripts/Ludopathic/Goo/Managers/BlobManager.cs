@@ -48,7 +48,11 @@ namespace Ludopathic.Goo.Managers
       [Space]
       public float PetriDishRadius = 2f;
       public int NumTeams = 2;
-      public int NUM_BLOBS = 1000;
+      public float GooDensity = 1;//ten per unit squared
+
+      public int NUM_BLOBS_Display;
+      private float PetriDishArea => Mathf.PI * PetriDishRadius * PetriDishRadius;
+      private int NUM_BLOBS => Mathf.FloorToInt(GooDensity * PetriDishArea);
       
       //
       // Persistent Entity Memroy
@@ -163,9 +167,6 @@ namespace Ludopathic.Goo.Managers
       private JobHandle _jobHandleResetJobs;//combiner
       private JobHandle _jobCopy2DArrayTo3DArray;//TODO
 
-
-
-
       private JobHandle _jobHandleCopyBlobInfoToFloat3;
       private JobHandle _jobHandleBuildKNNTree;
 
@@ -242,27 +243,28 @@ namespace Ludopathic.Goo.Managers
 
       private void InitBlobData(int numBlobs, ParticleSystem blobParticleSystemOutput)
       {
+         NUM_BLOBS_Display = numBlobs;
          var main = BlobParticleSystemOutput.main;
-         main.maxParticles = NUM_BLOBS;
-         BlobParticleSystemOutput.Emit(NUM_BLOBS);
+         main.maxParticles = numBlobs;
+         BlobParticleSystemOutput.Emit(numBlobs);
          //Blob enabling
      
          //create scratch data
-         _blobVelocities = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
-         _blobPositions = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
-         _blobAccelerations = new NativeArray<float2>(NUM_BLOBS, Allocator.Persistent);
-         _blobRadii = new NativeArray<float>(NUM_BLOBS, Allocator.Persistent);
-         _blobTeamIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
-         _blobGroupIDs = new NativeArray<int>(NUM_BLOBS, Allocator.Persistent);
+         _blobVelocities = new NativeArray<float2>(numBlobs, Allocator.Persistent);
+         _blobPositions = new NativeArray<float2>(numBlobs, Allocator.Persistent);
+         _blobAccelerations = new NativeArray<float2>(numBlobs, Allocator.Persistent);
+         _blobRadii = new NativeArray<float>(numBlobs, Allocator.Persistent);
+         _blobTeamIDs = new NativeArray<int>(numBlobs, Allocator.Persistent);
+         _blobGroupIDs = new NativeArray<int>(numBlobs, Allocator.Persistent);
          _numGroups = new NativeArray<int>(1, Allocator.Persistent);
          _floodQueue = new NativeQueue<int>(Allocator.Persistent);
-         _blobColors = new NativeArray<Color>(NUM_BLOBS, Allocator.Persistent);
-         _blobPositionsV3 = new NativeArray<float3>(NUM_BLOBS, Allocator.Persistent);
+         _blobColors = new NativeArray<Color>(numBlobs, Allocator.Persistent);
+         _blobPositionsV3 = new NativeArray<float3>(numBlobs, Allocator.Persistent);
          _overallGooBounds = new NativeArray<Bounds>(1, Allocator.Persistent);
          _overallGooBounds[0] = OverallGooBounds;
          
          //copy init values into scratch data
-         for (int index = 0; index < NUM_BLOBS; index++)
+         for (int index = 0; index < numBlobs; index++)
          {
             Vector3 randomPos = Random.insideUnitCircle * PetriDishRadius;
 
@@ -283,7 +285,7 @@ namespace Ludopathic.Goo.Managers
        
 
          main = BlobParticleSystemOutput.main;
-         main.maxParticles = NUM_BLOBS;
+         main.maxParticles = numBlobs;
          
      
          _knnContainer = new KnnContainer(_blobPositionsV3, false, Allocator.Persistent);
@@ -797,7 +799,7 @@ namespace Ludopathic.Goo.Managers
                break;
             case BlobColorDebugStyle.GroupID:
                _jobDataDebugColorisationInt.minVal = 0;
-               _jobDataDebugColorisationInt.maxVal = _numGroups[0];//funky, but it's the only way to get an int out of the job
+               _jobDataDebugColorisationInt.maxVal = _numGroups[0];//funky, but it's the only way to get an int out of the job. Ah but it is only ready after we complete. We should point at a native array, strictly
                _jobDataDebugColorisationInt.values = _blobGroupIDs;
                break;
             default:
